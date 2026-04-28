@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: project-dse-04
+    runtime: node
+    rootDir: BACKEND
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

@@ -2,6 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 
 /* Routes */
@@ -10,6 +11,8 @@ const chatRoutes = require("./routes/chat.routes");
 
 
 const app = express();
+const staticIndexFile = path.join(__dirname, '../../FRONTEND/dist/index.html');
+const staticDir = staticIndexFile ? path.dirname(staticIndexFile) : null;
 
 /* using middlewares */
 app.use(cors({
@@ -18,7 +21,10 @@ app.use(cors({
 }))
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../public')));
+
+if (fs.existsSync(staticIndexFile)) {
+    app.use(express.static(staticDir));
+}
 
 
 
@@ -28,8 +34,26 @@ app.use('/api/user', authRoutes);
 app.use('/api/chat', chatRoutes);
 
 
+app.get("/", (req, res) => {
+    if (fs.existsSync(staticIndexFile)) {
+        return res.sendFile(staticIndexFile);
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: 'Mate.ai backend is running',
+    });
+});
+
 app.get("*name", (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    if (fs.existsSync(staticIndexFile)) {
+        return res.sendFile(staticIndexFile);
+    }
+
+    return res.status(404).json({
+        success: false,
+        message: 'Route not found',
+    });
 });
 
 module.exports = app;
