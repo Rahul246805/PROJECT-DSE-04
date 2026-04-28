@@ -1,0 +1,8 @@
+{
+  "name": "project-dse-04-root",
+  "private": true,
+  "scripts": {
+    "build": "npm install --prefix BACKEND && npm run build --prefix BACKEND",
+    "start": "npm start --prefix BACKEND"
+  }
+}

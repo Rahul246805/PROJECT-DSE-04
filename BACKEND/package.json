@@ -4,6 +4,8 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
+    "build": "npm install --prefix ../FRONTEND && npm run build --prefix ../FRONTEND && node ./scripts/sync-frontend-build.js",
+    "postinstall": "npm run build",
     "start": "node server.js"
   },
   "dependencies": {
