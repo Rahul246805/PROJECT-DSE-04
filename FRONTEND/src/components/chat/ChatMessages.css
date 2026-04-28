@@ -1,0 +1,236 @@
+.messages {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 940px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.2rem 0 1rem;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.msg-user {
+  align-items: flex-end;
+}
+
+.msg-head {
+  width: min(100%, 760px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.msg-user .msg-head {
+  justify-content: flex-end;
+}
+
+.msg-role,
+.msg-time {
+  color: var(--color-text-faint);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.msg-bubble {
+  width: fit-content;
+  max-width: min(100%, 760px);
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.msg-bubble > :first-child {
+  margin-top: 0;
+}
+
+.msg-bubble > :last-child {
+  margin-bottom: 0;
+}
+
+.msg-user .msg-bubble {
+  background: var(--color-user-bubble);
+  border-color: rgba(215, 245, 234, 0.18);
+  color: var(--color-user-text);
+}
+
+.msg-error .msg-bubble {
+  border-color: rgba(255, 133, 133, 0.25);
+  background: rgba(84, 16, 16, 0.22);
+}
+
+.msg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.msg-user .msg-actions {
+  justify-content: flex-end;
+}
+
+.msg-actions button {
+  padding: 0.5rem 0.72rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.msg-actions button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text);
+}
+
+.msg-actions button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.msg-rich-text p,
+.msg-rich-text ul,
+.msg-rich-text h4 {
+  margin: 0 0 0.9rem;
+}
+
+.msg-rich-text h4 {
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.msg-rich-text ul {
+  padding-left: 1.15rem;
+}
+
+.msg-rich-text li + li {
+  margin-top: 0.35rem;
+}
+
+.msg-rich-text code,
+.msg-code-block code {
+  font-family: 'Consolas', 'SFMono-Regular', monospace;
+}
+
+.msg-rich-text code {
+  padding: 0.14rem 0.38rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.92em;
+}
+
+.msg-user .msg-rich-text code {
+  background: rgba(8, 35, 25, 0.09);
+}
+
+.msg-rich-text a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.28);
+}
+
+.msg-code-block {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  background: rgba(7, 11, 16, 0.72);
+}
+
+.msg-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.msg-code-head span {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.msg-code-head button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-soft);
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+
+.msg-code-block pre {
+  margin: 0;
+  padding: 0.9rem 1rem 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.msg-bubble-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.msg-pending-copy {
+  margin-left: 0.2rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.typing-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.55;
+  animation: messagePulse 1s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes messagePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .messages {
+    gap: 1rem;
+  }
+
+  .msg-bubble {
+    max-width: 100%;
+    border-radius: 1.1rem;
+  }
+}

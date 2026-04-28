@@ -1,0 +1,120 @@
+.chat-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 8, 13, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.chat-modal-card {
+  width: min(100%, 32rem);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 1.6rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    var(--color-elevated-strong);
+  box-shadow: var(--shadow-panel);
+  padding: 1.5rem;
+}
+
+.chat-modal-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.2rem;
+}
+
+.chat-modal-kicker {
+  margin: 0;
+  color: var(--color-accent-secondary);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.chat-modal-copy h2,
+.chat-modal-copy p {
+  margin: 0;
+}
+
+.chat-modal-copy p {
+  color: var(--color-text-muted);
+}
+
+.chat-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chat-modal-form label {
+  color: var(--color-text-soft);
+  font-size: 0.95rem;
+}
+
+.chat-modal-form input {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: rgba(6, 12, 19, 0.85);
+  color: var(--color-text);
+}
+
+.chat-modal-form input:focus {
+  outline: none;
+  border-color: rgba(113, 190, 255, 0.72);
+  box-shadow: var(--color-focus-ring);
+}
+
+.chat-modal-error {
+  margin: 0;
+  color: #ffb9b9;
+  font-size: 0.92rem;
+}
+
+.chat-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.chat-modal-secondary,
+.chat-modal-primary {
+  border-radius: 0.95rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.chat-modal-secondary {
+  border: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.chat-modal-primary {
+  border: 0;
+  background: linear-gradient(135deg, #d7f5ea, #9fe6d1);
+  color: #052118;
+  font-weight: 700;
+}
+
+.chat-modal-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .chat-modal-card {
+    padding: 1.15rem;
+    border-radius: 1.2rem;
+  }
+
+  .chat-modal-actions {
+    flex-direction: column-reverse;
+  }
+}
