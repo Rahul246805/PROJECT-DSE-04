@@ -6,10 +6,10 @@
   padding: clamp(0.75rem, 1.8vw, 1rem);
   overflow: hidden;
   background:
-    radial-gradient(circle at 10% 12%, rgba(138, 231, 208, 0.12), transparent 20%),
-    radial-gradient(circle at 82% 16%, rgba(147, 185, 255, 0.12), transparent 24%),
-    radial-gradient(circle at 50% 100%, rgba(255, 209, 148, 0.06), transparent 26%),
-    linear-gradient(180deg, #08111a 0%, #0b141e 48%, #0c1622 100%);
+    radial-gradient(circle at 10% 12%, rgba(98, 116, 110, 0.12), transparent 20%),
+    radial-gradient(circle at 82% 16%, rgba(47, 60, 68, 0.16), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(88, 108, 102, 0.06), transparent 24%),
+    linear-gradient(180deg, #070b10 0%, #0b1118 48%, #0c121a 100%);
 }
 
 .chat-sidebar {
@@ -22,11 +22,11 @@
   top: 1rem;
   align-self: start;
   padding: 1rem;
-  border: 1px solid rgba(199, 219, 255, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 1.35rem;
   background:
-    linear-gradient(180deg, rgba(17, 24, 35, 0.96), rgba(11, 18, 27, 0.94)),
-    rgba(14, 19, 27, 0.95);
+    linear-gradient(180deg, rgba(11, 18, 24, 0.97), rgba(8, 13, 19, 0.95)),
+    rgba(10, 16, 24, 0.95);
   backdrop-filter: blur(22px);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
@@ -73,7 +73,7 @@
   border-radius: 0.9rem;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(124, 227, 196, 0.28), rgba(140, 185, 255, 0.18));
+  background: linear-gradient(135deg, rgba(143, 163, 157, 0.18), rgba(56, 69, 76, 0.22));
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-weight: 800;
   flex-shrink: 0;
@@ -105,8 +105,8 @@
 
 .chat-sidebar-new {
   padding: 0.88rem 0.95rem;
-  border: 1px solid rgba(124, 227, 196, 0.14);
-  background: linear-gradient(180deg, rgba(124, 227, 196, 0.12), rgba(124, 227, 196, 0.04));
+  border: 1px solid rgba(143, 163, 157, 0.14);
+  background: linear-gradient(180deg, rgba(143, 163, 157, 0.12), rgba(143, 163, 157, 0.04));
   color: var(--color-text);
   text-align: left;
 }
@@ -124,8 +124,8 @@
 }
 
 .chat-sidebar-secondary.is-active {
-  border-color: rgba(140, 185, 255, 0.3);
-  background: rgba(140, 185, 255, 0.12);
+  border-color: rgba(143, 163, 157, 0.3);
+  background: rgba(143, 163, 157, 0.12);
   color: var(--color-text);
 }
 
@@ -144,7 +144,7 @@
 
 .chat-sidebar-search input:focus {
   outline: none;
-  border-color: rgba(140, 185, 255, 0.32);
+  border-color: rgba(143, 163, 157, 0.32);
   box-shadow: var(--color-focus-ring);
 }
 
@@ -201,8 +201,8 @@
 }
 
 .chat-list-item.active {
-  border-color: rgba(140, 185, 255, 0.28);
-  background: linear-gradient(180deg, rgba(140, 185, 255, 0.12), rgba(140, 185, 255, 0.04));
+  border-color: rgba(143, 163, 157, 0.28);
+  background: linear-gradient(180deg, rgba(143, 163, 157, 0.12), rgba(143, 163, 157, 0.04));
 }
 
 .chat-list-select {
@@ -311,15 +311,15 @@
   border-radius: 0.8rem;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(124, 227, 196, 0.26), rgba(140, 185, 255, 0.18));
+  background: linear-gradient(135deg, rgba(143, 163, 157, 0.18), rgba(56, 69, 76, 0.22));
   font-weight: 800;
   flex-shrink: 0;
 }
 
 .chat-sidebar-switch-btn {
-  border: 1px solid rgba(140, 185, 255, 0.22);
+  border: 1px solid rgba(143, 163, 157, 0.22);
   border-radius: 999px;
-  background: rgba(140, 185, 255, 0.08);
+  background: rgba(143, 163, 157, 0.08);
   color: var(--color-text);
   padding: 0.5rem 0.85rem;
   font: inherit;
@@ -329,8 +329,8 @@
 
 .chat-sidebar-switch-btn:hover {
   transform: translateY(-1px);
-  border-color: rgba(140, 185, 255, 0.36);
-  background: rgba(140, 185, 255, 0.14);
+  border-color: rgba(143, 163, 157, 0.36);
+  background: rgba(143, 163, 157, 0.14);
 }
 
 @media (max-width: 960px) {

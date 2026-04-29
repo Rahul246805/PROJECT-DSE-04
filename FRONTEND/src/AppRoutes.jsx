@@ -1,20 +1,76 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import React from 'react'
-import Home from './pages/Home'
-import Register from './pages/Register'
-import Login from './pages/Login'
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import PublicOnlyRoute from './components/PublicOnlyRoute.jsx';
+
+const Portfolio = lazy(() => import('./pages/Portfolio.jsx'));
+const Home = lazy(() => import('./pages/Home.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+
+const fallback = (
+  <div className="flex min-h-screen items-center justify-center">
+    <div className="glass-card rounded-[28px] px-6 py-5 text-sm text-slate-200">
+      Loading Mate.ai...
+    </div>
+  </div>
+);
 
 const AppRoutes = () => {
-    return (
+  return (
+    <BrowserRouter>
+      <Suspense fallback={fallback}>
+        <Routes>
+          <Route path="/" element={<Portfolio />} />
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyRoute>
+                <Login />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicOnlyRoute>
+                <Register />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicOnlyRoute>
+                <ForgotPassword />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <PublicOnlyRoute>
+                <ResetPassword />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/app"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/home" element={<Navigate to="/app" replace />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+};
 
-        <BrowserRouter>
-            <Routes>
-                <Route path='/' element={<Home />} />
-                <Route path='/register' element={<Register />} />
-                <Route path='/login' element={<Login />} />
-            </Routes>
-        </BrowserRouter>
-    )
-}
-
-export default AppRoutes
+export default AppRoutes;

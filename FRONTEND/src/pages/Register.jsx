@@ -1,139 +1,187 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import AuthLayout from '../components/AuthLayout.jsx';
 import { getErrorMessage, registerUser } from '../components/chat/aiClient.js';
-import AuthShowcase from '../components/AuthShowcase.jsx';
+import { validateEmail, validateName, validatePassword } from '../lib/validation.js';
 
 const Register = () => {
-  const [form, setForm] = useState({
-    email: '',
-    firstname: '',
-    lastname: '',
-    password: '',
-  });
-  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [form, setForm] = React.useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = React.useState({});
+  const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     document.title = 'Mate.ai | Create account';
   }, []);
 
-  function handleChange(event) {
+  const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
-  }
+    setErrors((current) => ({ ...current, [name]: '' }));
+  };
 
-  async function handleSubmit(event) {
+  const validate = () => {
+    const nextErrors = {
+      email: validateEmail(form.email),
+      firstName: validateName(form.firstName, 'First name'),
+      lastName: validateName(form.lastName, 'Last name'),
+      password: validatePassword(form.password),
+      confirmPassword:
+        form.confirmPassword !== form.password ? 'Passwords do not match.' : '',
+    };
+
+    setErrors(nextErrors);
+    return !Object.values(nextErrors).some(Boolean);
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!validate()) {
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       await registerUser({
-        email: form.email,
+        email: form.email.trim(),
         fullName: {
-          firstName: form.firstname,
-          lastName: form.lastname,
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
         },
         password: form.password,
       });
-      navigate('/');
+      toast.success('Account created. Please sign in to continue.');
+      navigate('/login', {
+        replace: true,
+        state: { email: form.email.trim(), fromSignup: true },
+      });
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      setErrors((current) => ({ ...current, email: message }));
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
   return (
-    <div className="auth-shell">
-      <section className="auth-panel">
-        <AuthShowcase
-          kicker="Modern AI collaboration"
-          title="Create your workspace and start chatting faster."
-          description="The updated UI brings a more professional feel, stronger mobile behavior, and a cleaner chat flow built for Mate.ai."
-          eyebrow="Calmer surfaces. Better motion. Confident first-run setup."
-          stats={[
-            { value: 'Fast', label: 'First conversation setup' },
-            { value: 'Fluid', label: 'Mobile and desktop feel' },
-            { value: 'Pro', label: 'Sharper workspace presentation' },
-          ]}
-          highlights={['Animated onboarding surface', 'Cleaner sign-up path', 'Ready for longer chat sessions']}
-        />
-      </section>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Launch your Mate.ai workspace with validated inputs, hashed passwords, and a clean onboarding flow."
+      badge="Mate.ai onboarding"
+      points={[
+        'Strong password requirements built in',
+        'Profile creation with helpful field-level feedback',
+        'Ready for protected routes and saved conversations',
+      ]}
+    >
+      <form className="mx-auto w-full max-w-[400px] space-y-4" onSubmit={handleSubmit} noValidate>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="field-shell">
+            <label className="field-label" htmlFor="register-firstName">
+              First name
+            </label>
+            <input
+              id="register-firstName"
+              name="firstName"
+              className="field-input"
+              placeholder="Jane"
+              value={form.firstName}
+              onChange={handleChange}
+            />
+            {errors.firstName ? <p className="text-sm text-rose-300">{errors.firstName}</p> : null}
+          </div>
 
-      <section className="auth-form-shell">
-        <div className="auth-card" role="main" aria-labelledby="register-heading">
-          <header className="auth-header">
-            <h2 id="register-heading">Create account</h2>
-            <p className="auth-sub">Set up your profile and begin a new conversation.</p>
-          </header>
-
-          <form className="auth-form" onSubmit={handleSubmit} noValidate>
-            <div className="field-group">
-              <label htmlFor="register-email">Email</label>
-              <input
-                id="register-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="grid-2">
-              <div className="field-group">
-                <label htmlFor="firstname">First name</label>
-                <input
-                  id="firstname"
-                  name="firstname"
-                  placeholder="Jane"
-                  value={form.firstname}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="field-group">
-                <label htmlFor="lastname">Last name</label>
-                <input
-                  id="lastname"
-                  name="lastname"
-                  placeholder="Doe"
-                  value={form.lastname}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="field-group">
-              <label htmlFor="register-password">Password</label>
-              <input
-                id="register-password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Create a password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                minLength={6}
-              />
-            </div>
-
-            <button type="submit" className="primary-btn" disabled={submitting}>
-              {submitting ? 'Creating...' : 'Create account'}
-            </button>
-          </form>
-
-          <p className="auth-alt">
-            Already have an account? <Link to="/login">Sign in</Link>
-          </p>
+          <div className="field-shell">
+            <label className="field-label" htmlFor="register-lastName">
+              Last name
+            </label>
+            <input
+              id="register-lastName"
+              name="lastName"
+              className="field-input"
+              placeholder="Doe"
+              value={form.lastName}
+              onChange={handleChange}
+            />
+            {errors.lastName ? <p className="text-sm text-rose-300">{errors.lastName}</p> : null}
+          </div>
         </div>
-      </section>
-    </div>
+
+        <div className="field-shell">
+          <label className="field-label" htmlFor="register-email">
+            Email
+          </label>
+          <input
+            id="register-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            className="field-input"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+          />
+          {errors.email ? <p className="text-sm text-rose-300">{errors.email}</p> : null}
+        </div>
+
+        <div className="field-shell">
+          <label className="field-label" htmlFor="register-password">
+            Password
+          </label>
+          <input
+            id="register-password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            className="field-input"
+            placeholder="At least 8 characters"
+            value={form.password}
+            onChange={handleChange}
+          />
+          {errors.password ? <p className="text-sm text-rose-300">{errors.password}</p> : null}
+        </div>
+
+        <div className="field-shell">
+          <label className="field-label" htmlFor="register-confirmPassword">
+            Confirm password
+          </label>
+          <input
+            id="register-confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            className="field-input"
+            placeholder="Repeat your password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+          />
+          {errors.confirmPassword ? (
+            <p className="text-sm text-rose-300">{errors.confirmPassword}</p>
+          ) : null}
+        </div>
+
+        <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
+          {submitting ? 'Creating account...' : 'Create Mate.ai account'}
+        </button>
+      </form>
+
+      <div className="mx-auto flex w-full max-w-[400px] items-center justify-between text-sm" style={{ color: 'var(--app-text-muted)' }}>
+        <span>Already have an account?</span>
+        <Link to="/login" className="font-semibold text-cyan-300 transition hover:text-cyan-200">
+          Sign in
+        </Link>
+      </div>
+    </AuthLayout>
   );
 };
 

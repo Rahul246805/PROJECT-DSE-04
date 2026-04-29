@@ -1,29 +1,29 @@
 :root {
-  --color-bg: #081018;
-  --color-bg-secondary: #0f1822;
-  --color-surface: rgba(15, 22, 31, 0.9);
-  --color-elevated: rgba(22, 31, 43, 0.95);
-  --color-elevated-strong: #182232;
-  --color-border: rgba(199, 219, 255, 0.09);
-  --color-border-strong: rgba(199, 219, 255, 0.16);
-  --color-text: #f3f7fb;
-  --color-text-soft: #dbe6f4;
-  --color-text-muted: #9baabd;
-  --color-text-faint: #74879c;
-  --color-primary: #e6f3ff;
+  --color-bg: #060b11;
+  --color-bg-secondary: #0b1118;
+  --color-surface: rgba(8, 13, 19, 0.9);
+  --color-elevated: rgba(12, 18, 27, 0.94);
+  --color-elevated-strong: #121b24;
+  --color-border: rgba(95, 117, 118, 0.18);
+  --color-border-strong: rgba(95, 117, 118, 0.28);
+  --color-text: #e8ecea;
+  --color-text-soft: #b2bcba;
+  --color-text-muted: #7a8683;
+  --color-text-faint: #61706d;
+  --color-primary: #edf2ef;
   --color-primary-hover: #ffffff;
-  --color-accent: #8ae7d0;
-  --color-accent-soft: rgba(138, 231, 208, 0.16);
-  --color-accent-secondary: #93b9ff;
-  --color-user-bubble: #dff7ef;
-  --color-user-text: #082319;
-  --color-focus-ring: 0 0 0 4px rgba(147, 185, 255, 0.16);
+  --color-accent: #8fa39d;
+  --color-accent-soft: rgba(143, 163, 157, 0.14);
+  --color-accent-secondary: #6f827d;
+  --color-user-bubble: linear-gradient(135deg, #70837d, #95a7a0);
+  --color-user-text: #091012;
+  --color-focus-ring: 0 0 0 4px rgba(143, 163, 157, 0.12);
 
   --font-sans: 'Manrope', 'Segoe UI', sans-serif;
 
   --shadow-panel:
-    0 28px 80px rgba(2, 8, 18, 0.44),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-card: 0 18px 48px rgba(0, 0, 0, 0.26);
-  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
+    0 28px 80px rgba(1, 6, 10, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-card: 0 18px 48px rgba(0, 0, 0, 0.3);
+  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.22);
 }

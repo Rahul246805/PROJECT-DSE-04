@@ -26,7 +26,6 @@ import {
 } from '../store/chatSlice.js';
 
 import {
-  createGuestSession,
   createChat,
   deleteChat,
   fetchChats,
@@ -212,7 +211,6 @@ const Home = () => {
   const [editingMessageContent, setEditingMessageContent] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [currentUser, setCurrentUser] = useState(() => getStoredAuthUser());
-  const guestSessionPromiseRef = useRef(null);
   const speechRecognitionRef = useRef(null);
   const speechStartInputRef = useRef('');
   const speechHadResultRef = useRef(false);
@@ -266,16 +264,6 @@ const Home = () => {
   useEffect(() => {
     let ignore = false;
 
-    async function ensureSession() {
-      if (!guestSessionPromiseRef.current) {
-        guestSessionPromiseRef.current = createGuestSession().finally(() => {
-          guestSessionPromiseRef.current = null;
-        });
-      }
-
-      return guestSessionPromiseRef.current;
-    }
-
     async function loadWorkspace() {
       try {
         const response = await fetchChats();
@@ -293,24 +281,9 @@ const Home = () => {
         const message = getErrorMessage(error);
 
         if (!ignore && message.toLowerCase().includes('unauthorized')) {
-          try {
-            await ensureSession();
-            const retryResponse = await fetchChats();
-            const availableChats = retryResponse.chats || [];
-
-            if (!ignore) {
-              setCurrentUser(getStoredAuthUser());
-              dispatch(setChats(availableChats));
-
-              if (availableChats.length > 0) {
-                dispatch(selectChat(availableChats[0]._id));
-              }
-            }
-          } catch (guestError) {
-            if (!ignore) {
-              toast.error(getErrorMessage(guestError));
-              navigate('/login');
-            }
+          if (!ignore) {
+            toast.error('Your session expired. Please sign in again.');
+            navigate('/login');
           }
         } else if (!ignore) {
           toast.error(message);

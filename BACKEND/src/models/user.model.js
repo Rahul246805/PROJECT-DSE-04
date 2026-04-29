@@ -7,20 +7,31 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+        lowercase: true,
+        trim: true,
     },
     fullName: {
         firstName: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
         },
         lastName: {
             type: String,
-            required: true
+            required: true,
+            trim: true,
         }
     },
     password: {
         type: String,
     }
+    ,
+    passwordResetToken: {
+        type: String,
+    },
+    passwordResetExpires: {
+        type: Date,
+    },
 },
     {
         timestamps: true

@@ -44,8 +44,8 @@
 
 .command-palette-kicker {
   padding: 0.35rem 0.75rem;
-  background: rgba(124, 227, 196, 0.12);
-  color: #dff7ef;
+  background: rgba(143, 163, 157, 0.12);
+  color: #dde6e2;
 }
 
 .command-palette-shortcut,
@@ -67,7 +67,7 @@
 
 .command-palette-input:focus {
   outline: none;
-  border-color: rgba(140, 185, 255, 0.36);
+  border-color: rgba(143, 163, 157, 0.36);
   box-shadow: var(--color-focus-ring);
 }
 
@@ -98,7 +98,7 @@
 .command-palette-item:hover {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(140, 185, 255, 0.24);
+  border-color: rgba(143, 163, 157, 0.24);
 }
 
 .command-palette-item-copy {

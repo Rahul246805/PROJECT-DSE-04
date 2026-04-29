@@ -2,11 +2,12 @@ import axios from "axios";
 
 const AUTH_TOKEN_KEY = "mate_token";
 const AUTH_USER_KEY = "mate_user";
+const baseURL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 
 /* ================= AXIOS CLIENT ================= */
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL,
   withCredentials: true,
   timeout: 30000,
   headers: {
@@ -17,7 +18,7 @@ export const apiClient = axios.create({
 /* ================= TOKEN ATTACH ================= */
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  const token = typeof window !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -29,20 +30,22 @@ apiClient.interceptors.request.use((config) => {
 /* ================= TOKEN SAVE ================= */
 
 export const saveAuthToken = (token) => {
-  if (!token) return;
+  if (!token || typeof window === 'undefined') return;
 
   localStorage.setItem(AUTH_TOKEN_KEY, token);
-
-  // optional (only if socket auth uses cookies)
   document.cookie = `token=${token}; path=/;`;
 };
 
 export const saveAuthUser = (user) => {
-  if (!user) return;
+  if (!user || typeof window === 'undefined') return;
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 };
 
 export const getStoredAuthUser = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const value = localStorage.getItem(AUTH_USER_KEY);
 
   if (!value) {
@@ -57,7 +60,27 @@ export const getStoredAuthUser = () => {
   }
 };
 
+export const getAuthToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+};
+
+export const isAuthenticated = () => Boolean(getAuthToken());
+
+export const fetchCurrentUser = async () => {
+  const { data } = await apiClient.get('/auth/me');
+  saveAuthUser(data?.user);
+  return data;
+};
+
 export const clearAuthToken = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
   delete apiClient.defaults.headers.common.Authorization;
@@ -112,8 +135,6 @@ export const loginUser = async (payload) => {
 
 export const registerUser = async (payload) => {
   const { data } = await apiClient.post("/auth/register", payload);
-  saveAuthToken(data?.token);
-  saveAuthUser(data?.user);
   return data;
 };
 
@@ -130,6 +151,21 @@ export const logoutUser = async () => {
   } finally {
     clearAuthToken();
   }
+};
+
+export const forgotPassword = async (payload) => {
+  const { data } = await apiClient.post('/auth/forgot-password', payload);
+  return data;
+};
+
+export const resetPassword = async ({ token, password }) => {
+  const { data } = await apiClient.post(`/auth/reset-password/${token}`, { password });
+  return data;
+};
+
+export const submitContactForm = async (payload) => {
+  const { data } = await apiClient.post('/contact', payload);
+  return data;
 };
 
 /* ================= ERROR HANDLER ================= */

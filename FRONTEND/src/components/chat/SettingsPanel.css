@@ -69,8 +69,8 @@
   height: 0.8rem;
   margin-top: 0.35rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, #69f0ae, #2fcf88);
-  box-shadow: 0 0 0 0.35rem rgba(47, 207, 136, 0.12);
+  background: linear-gradient(180deg, #9eb1ab, #73857f);
+  box-shadow: 0 0 0 0.35rem rgba(115, 133, 127, 0.12);
   flex-shrink: 0;
 }
 
@@ -126,16 +126,16 @@
 }
 
 .settings-switch-btn {
-  border: 1px solid rgba(140, 185, 255, 0.24);
+  border: 1px solid rgba(143, 163, 157, 0.24);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(140, 185, 255, 0.18), rgba(140, 185, 255, 0.08));
+  background: linear-gradient(180deg, rgba(143, 163, 157, 0.18), rgba(143, 163, 157, 0.08));
   color: var(--color-text);
 }
 
 .settings-switch-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  border-color: rgba(140, 185, 255, 0.42);
-  background: linear-gradient(180deg, rgba(140, 185, 255, 0.25), rgba(140, 185, 255, 0.12));
+  border-color: rgba(143, 163, 157, 0.42);
+  background: linear-gradient(180deg, rgba(143, 163, 157, 0.25), rgba(143, 163, 157, 0.12));
 }
 
 .settings-logout-btn {

@@ -1,9 +1,33 @@
 services:
   - type: web
-    name: project-dse-04
+    name: mate-ai-portfolio
     runtime: node
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CONTACT_RECEIVER_EMAIL
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

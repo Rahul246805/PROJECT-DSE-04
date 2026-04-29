@@ -1,12 +1,20 @@
 const Groq = require("groq-sdk");
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 const FALLBACK_REPLY = "Sorry, something went wrong. Please try again.";
 const DEFAULT_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 const REALTIME_MODEL = process.env.GROQ_REALTIME_MODEL || "groq/compound-mini";
+
+function getGroqClient() {
+  if (!process.env.GROQ_API_KEY) {
+    const error = new Error(FALLBACK_REPLY);
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+}
 
 function getCurrentDateLabel() {
   return new Intl.DateTimeFormat("en-US", {
@@ -105,6 +113,8 @@ function buildGroqMessages(history) {
 }
 
 async function requestGroqCompletion({ model, messages, enableCitations }) {
+  const groq = getGroqClient();
+
   return groq.chat.completions.create({
     model,
     messages,
@@ -115,12 +125,6 @@ async function requestGroqCompletion({ model, messages, enableCitations }) {
 }
 
 async function generateResponse(history) {
-  if (!process.env.GROQ_API_KEY) {
-    const error = new Error(FALLBACK_REPLY);
-    error.statusCode = 500;
-    throw error;
-  }
-
   const messages = buildGroqMessages(history);
   const useRealtimeModel = shouldUseRealtimeModel(history);
   const primaryModel = useRealtimeModel ? REALTIME_MODEL : DEFAULT_MODEL;
