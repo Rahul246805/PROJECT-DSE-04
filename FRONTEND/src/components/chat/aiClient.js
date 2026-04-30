@@ -2,7 +2,35 @@ import axios from "axios";
 
 const AUTH_TOKEN_KEY = "mate_token";
 const AUTH_USER_KEY = "mate_user";
-const baseURL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+
+function resolveApiBaseUrl() {
+  const envValue = import.meta.env.VITE_API_URL?.trim();
+  const isProduction = import.meta.env.PROD;
+
+  if (!envValue) {
+    return "/api";
+  }
+
+  const normalized = envValue.replace(/\/$/, "");
+  const lowerValue = normalized.toLowerCase();
+  const isPlaceholderValue =
+    lowerValue.includes("your-backend-service") ||
+    lowerValue.includes("your-render-backend-url") ||
+    lowerValue.includes("example.com");
+  const isLocalBackend =
+    lowerValue.includes("127.0.0.1") ||
+    lowerValue.includes("localhost");
+
+  // In production, prefer the same Render service backend when env config is
+  // still a placeholder or points at a local development server.
+  if (isProduction && (isPlaceholderValue || isLocalBackend)) {
+    return "/api";
+  }
+
+  return normalized;
+}
+
+const baseURL = resolveApiBaseUrl();
 
 /* ================= AXIOS CLIENT ================= */
 
