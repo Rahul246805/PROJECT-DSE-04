@@ -117,7 +117,7 @@ const Portfolio = () => {
   const [successMessage, setSuccessMessage] = React.useState('');
 
   React.useEffect(() => {
-    document.title = 'Mate.ai | AI Chatbot Portfolio';
+    document.title = 'Mate.ai | AI Chat Workspace for Planning, Writing and Debugging';
   }, []);
 
   React.useEffect(() => {
