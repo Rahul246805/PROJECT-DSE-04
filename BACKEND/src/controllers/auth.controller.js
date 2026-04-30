@@ -7,12 +7,41 @@ const { sendPasswordResetEmail } = require('../services/mail.service');
 const AUTH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_WINDOW_MS = 1000 * 60 * 30;
 
-function getBaseAppUrl(req) {
+function normalizeUrl(value) {
+    if (!value || typeof value !== 'string') {
+        return '';
+    }
+
+    return value.trim().replace(/\/$/, '');
+}
+
+function isLocalUrl(value) {
+    const normalized = normalizeUrl(value).toLowerCase();
+
     return (
-        process.env.FRONTEND_URL ||
-        process.env.PUBLIC_APP_URL ||
-        `${req.protocol}://${req.get('host')}`
+        normalized.includes('127.0.0.1') ||
+        normalized.includes('localhost') ||
+        normalized.includes('::1')
     );
+}
+
+function getBaseAppUrl(req) {
+    const requestUrl = `${req.protocol}://${req.get('host')}`;
+    const candidates = [
+        process.env.PUBLIC_APP_URL,
+        process.env.FRONTEND_URL,
+        process.env.RENDER_EXTERNAL_URL,
+        requestUrl,
+    ]
+        .map(normalizeUrl)
+        .filter(Boolean);
+
+    if (process.env.NODE_ENV === 'production') {
+        const publicCandidate = candidates.find((candidate) => !isLocalUrl(candidate));
+        return publicCandidate || normalizeUrl(process.env.RENDER_EXTERNAL_URL) || normalizeUrl(requestUrl);
+    }
+
+    return candidates[0] || normalizeUrl(requestUrl);
 }
 
 function normalizeEmail(email) {

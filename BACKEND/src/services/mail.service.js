@@ -49,13 +49,28 @@ async function sendPasswordResetEmail({ to, resetUrl, firstName }) {
         from: fromAddress(),
         to,
         subject: 'Reset your Mate.ai password',
-        text: `Hi ${firstName},\n\nUse this link to reset your Mate.ai password:\n${resetUrl}\n\nThis link expires in 30 minutes.`,
+        text: `Hi ${firstName},\n\nWe received a request to reset your Mate.ai password.\n\nOpen this secure link to choose a new password:\n${resetUrl}\n\nThis link expires in 30 minutes. If you did not request this, you can safely ignore this email.`,
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-            <h2>Reset your Mate.ai password</h2>
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827;max-width:560px;margin:0 auto;padding:24px">
+            <h2 style="margin:0 0 16px">Reset your Mate.ai password</h2>
             <p>Hi ${firstName},</p>
-            <p>Use the link below to reset your password. This link expires in 30 minutes.</p>
-            <p><a href="${resetUrl}">${resetUrl}</a></p>
+            <p>We received a request to reset your Mate.ai password.</p>
+            <p>Click the button below to choose a new password. This secure link expires in 30 minutes.</p>
+            <p style="margin:24px 0">
+              <a
+                href="${resetUrl}"
+                style="display:inline-block;padding:12px 20px;background:#111827;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600"
+              >
+                Reset Password
+              </a>
+            </p>
+            <p style="font-size:14px;color:#4b5563;word-break:break-word">
+              If the button does not work, copy and paste this link into your browser:<br />
+              <a href="${resetUrl}">${resetUrl}</a>
+            </p>
+            <p style="font-size:14px;color:#4b5563">
+              If you did not request this, you can safely ignore this email.
+            </p>
           </div>
         `,
     });
