@@ -4,15 +4,32 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const aiService = require("../services/ai.service");
 
+const normalizeOrigin = (value) => {
+  if (!value || typeof value !== "string") {
+    return null;
+  }
+
+  return value.trim().replace(/\/$/, "");
+};
+
 function initSocketServer(httpServer) {
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    process.env.FRONTEND_URL,
+    process.env.PUBLIC_APP_URL,
+    process.env.RENDER_EXTERNAL_URL,
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
   const io = new Server(httpServer, {
     cors: {
-      origin: ["http://localhost:5173"],
+      origin: allowedOrigins,
       credentials: true,
     },
   });
 
-  // AUTH
   io.use(async (socket, next) => {
     try {
       const cookieHeader = socket.handshake.headers?.cookie || "";
@@ -41,7 +58,6 @@ function initSocketServer(httpServer) {
     }
   });
 
-  // CONNECTION
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
     console.log("User:", socket.user?.email);
@@ -63,7 +79,7 @@ function initSocketServer(httpServer) {
 
         const reply = await aiService.generateResponse(content);
 
-        console.log("AI Reply:", reply); // IMPORTANT
+        console.log("AI Reply:", reply);
 
         socket.emit("ai-typing", { chat, status: false });
 
@@ -71,7 +87,6 @@ function initSocketServer(httpServer) {
           chat,
           content: reply,
         });
-
       } catch (error) {
         console.error("AI ERROR:", error.message);
 

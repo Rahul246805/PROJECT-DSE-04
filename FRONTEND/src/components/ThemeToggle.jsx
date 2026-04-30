@@ -1,26 +1,8 @@
 import React from 'react';
 import { MoonStar, SunMedium } from 'lucide-react';
+import { applyTheme, getStoredTheme, STORAGE_KEY } from '../lib/theme.js';
 
-const STORAGE_KEY = 'mate_theme';
-
-export function getStoredTheme() {
-  if (typeof window === 'undefined') {
-    return 'dark';
-  }
-
-  return localStorage.getItem(STORAGE_KEY) || 'dark';
-}
-
-export function applyTheme(theme) {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  document.documentElement.classList.toggle('light', theme === 'light');
-  document.documentElement.dataset.theme = theme;
-}
-
-export function useTheme() {
+function useTheme() {
   const [theme, setTheme] = React.useState(() => getStoredTheme());
 
   React.useEffect(() => {

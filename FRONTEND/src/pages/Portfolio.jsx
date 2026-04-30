@@ -25,8 +25,11 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getErrorMessage, submitContactForm } from '../components/chat/aiClient.js';
-import { applyTheme, getStoredTheme } from '../components/ThemeToggle.jsx';
+import { applyTheme, getStoredTheme } from '../lib/theme.js';
 import { validateEmail, validateName } from '../lib/validation.js';
+
+const MotionDiv = motion.div;
+const MotionArticle = motion.article;
 
 const navItems = [
   ['about', 'About'],
@@ -310,7 +313,7 @@ const Portfolio = () => {
       <main>
         <section ref={heroRef} className="section-shell section-block">
           <div className="landing-grid min-h-[calc(100vh-72px)] items-center gap-8">
-          <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="col-span-12 space-y-8 lg:col-span-7">
+          <MotionDiv initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="col-span-12 space-y-8 lg:col-span-7">
             <div className="space-y-5">
               <span data-gsap="hero-copy" className="section-kicker">Mate.ai workspace</span>
               <h1 data-gsap="hero-copy" className="max-w-3xl font-display text-5xl font-semibold leading-[0.95] sm:text-6xl lg:text-7xl">
@@ -360,9 +363,9 @@ const Portfolio = () => {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </MotionDiv>
 
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.08 }} className="relative col-span-12 lg:col-span-5">
+          <MotionDiv initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.08 }} className="relative col-span-12 lg:col-span-5">
             <div data-gsap="orb-left" className="absolute -left-6 top-8 h-32 w-32 rounded-full bg-[#41514d]/24 blur-3xl" />
             <div data-gsap="orb-right" className="absolute -right-2 bottom-12 h-36 w-36 rounded-full bg-[#243036]/28 blur-3xl" />
             <div ref={previewRef} className="glass-card relative overflow-hidden rounded-[24px] p-5 [transform-style:preserve-3d]">
@@ -405,7 +408,7 @@ const Portfolio = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </MotionDiv>
           </div>
         </section>
 
@@ -453,7 +456,7 @@ const Portfolio = () => {
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {features.map((feature, index) => (
-              <motion.article
+              <MotionArticle
                 key={feature.title}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -466,7 +469,7 @@ const Portfolio = () => {
                 <p className="mt-3 text-sm leading-7" style={{ color: 'var(--app-text-muted)' }}>
                   {feature.description}
                 </p>
-              </motion.article>
+              </MotionArticle>
             ))}
           </div>
         </section>

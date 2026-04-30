@@ -4,6 +4,8 @@ import { ArrowLeft, BotMessageSquare, ShieldCheck, Sparkles } from 'lucide-react
 import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle.jsx';
 
+const MotionSection = motion.section;
+
 const AuthLayout = ({ title, subtitle, children, footer, badge = 'Mate.ai access', points = [] }) => {
   return (
     <div className="auth-backdrop min-h-screen">
@@ -21,7 +23,7 @@ const AuthLayout = ({ title, subtitle, children, footer, badge = 'Mate.ai access
         </div>
 
         <div className="landing-grid flex-1 items-stretch">
-          <motion.section
+          <MotionSection
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
@@ -70,9 +72,9 @@ const AuthLayout = ({ title, subtitle, children, footer, badge = 'Mate.ai access
                 </div>
               )}
             </div>
-          </motion.section>
+          </MotionSection>
 
-          <motion.section
+          <MotionSection
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.08 }}
@@ -86,7 +88,7 @@ const AuthLayout = ({ title, subtitle, children, footer, badge = 'Mate.ai access
               {children}
               {footer ? <div className="text-sm" style={{ color: 'var(--app-text-muted)' }}>{footer}</div> : null}
             </div>
-          </motion.section>
+          </MotionSection>
         </div>
       </div>
     </div>

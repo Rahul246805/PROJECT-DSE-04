@@ -6,7 +6,7 @@ import {
   getErrorMessage,
   loginUser,
 } from '../components/chat/aiClient.js';
-import { validateEmail, validatePassword } from '../lib/validation.js';
+import { validateEmail } from '../lib/validation.js';
 
 const Login = () => {
   const navigate = useNavigate();

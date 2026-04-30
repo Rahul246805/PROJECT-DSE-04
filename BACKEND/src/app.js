@@ -1,5 +1,3 @@
-// src/app.js
-
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -7,30 +5,44 @@ const path = require('path');
 
 /* Routes */
 const authRoutes = require('./routes/auth.routes');
-const chatRoutes = require("./routes/chat.routes");
-const contactRoutes = require("./routes/contact.routes");
+const chatRoutes = require('./routes/chat.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 const app = express();
 
-/* ================= CORS FIX ================= */
+/* ================= CORS ================= */
 
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://project-dse-04.onrender.com', // 🔥 IMPORTANT
-];
+const normalizeOrigin = (value) => {
+    if (!value || typeof value !== 'string') {
+        return null;
+    }
+
+    return value.trim().replace(/\/$/, '');
+};
+
+const allowedOrigins = new Set(
+    [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        process.env.FRONTEND_URL,
+        process.env.PUBLIC_APP_URL,
+        process.env.RENDER_EXTERNAL_URL,
+    ]
+        .map(normalizeOrigin)
+        .filter(Boolean)
+);
 
 app.use(cors({
-    origin: function (origin, callback) {
+    origin(origin, callback) {
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.includes(origin)) {
+        if (allowedOrigins.has(normalizeOrigin(origin))) {
             return callback(null, true);
         }
 
         return callback(new Error('CORS origin not allowed'));
     },
-    credentials: true
+    credentials: true,
 }));
 
 /* ================= MIDDLEWARE ================= */
@@ -58,11 +70,9 @@ const publicPath = path.join(__dirname, '../public');
 
 app.use(express.static(publicPath));
 
-// 🔥 React routing fix (IMPORTANT)
-app.get('*', (req, res) => {
+// Express 5 requires named wildcards for SPA fallbacks.
+app.get('/{*any}', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
 });
-
-/* ================= EXPORT ================= */
 
 module.exports = app;
