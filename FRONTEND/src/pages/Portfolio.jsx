@@ -313,102 +313,102 @@ const Portfolio = () => {
       <main>
         <section ref={heroRef} className="section-shell section-block">
           <div className="landing-grid min-h-[calc(100vh-72px)] items-center gap-8">
-          <MotionDiv initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="col-span-12 space-y-8 lg:col-span-7">
-            <div className="space-y-5">
-              <span data-gsap="hero-copy" className="section-kicker">Mate.ai workspace</span>
-              <h1 data-gsap="hero-copy" className="max-w-3xl font-display text-5xl font-semibold leading-[0.95] sm:text-6xl lg:text-7xl">
-                Smarter conversations. Quieter design. Better focus.
-              </h1>
-              <p data-gsap="hero-copy" className="max-w-2xl text-lg leading-8" style={{ color: 'var(--app-text-soft)' }}>
-                Mate.ai is an AI chatbot workspace for support, engagement, and research. The portfolio now follows the same calm dark interface style as the product and guides visitors straight into working login and signup flows.
-              </p>
-            </div>
-
-            <div data-gsap="hero-copy" className="flex flex-wrap gap-4">
-              <Link to="/register" className="btn-primary">
-                Sign up
-                <ArrowRight size={16} />
-              </Link>
-              <Link to="/login" className="btn-secondary">
-                Login
-              </Link>
-            </div>
-
-            <div data-gsap="hero-copy" className="glass-card rounded-[28px] p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
-                    Access Mate.ai
-                  </p>
-                  <h2 className="mt-2 text-xl font-semibold">Create an account or continue to your workspace.</h2>
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link to="/login" className="btn-secondary justify-center">
-                    Login
-                  </Link>
-                  <Link to="/register" className="btn-primary justify-center">
-                    Sign up
-                  </Link>
-                </div>
+            <MotionDiv initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="col-span-12 space-y-8 lg:col-span-7">
+              <div className="space-y-5">
+                <span data-gsap="hero-copy" className="section-kicker">Mate.ai workspace</span>
+                <h1 data-gsap="hero-copy" className="max-w-3xl font-display text-5xl font-semibold leading-[0.95] sm:text-6xl lg:text-7xl">
+                  Smarter conversations. Quieter design. Better focus.
+                </h1>
+                <p data-gsap="hero-copy" className="max-w-2xl text-lg leading-8" style={{ color: 'var(--app-text-soft)' }}>
+                  Mate.ai is an AI chatbot workspace for support, engagement, and research. The portfolio follows the same calm dark interface style as the product and guides visitors directly into working login and signup flows.
+                </p>
               </div>
-            </div>
 
-            <div ref={statGridRef} className="grid gap-4 md:grid-cols-3">
-              {quickStats.map(([title, text]) => (
-                <div key={title} className="glass-card rounded-[20px] p-4">
-                  <h2 className="mb-2 text-sm font-semibold text-[var(--app-accent)]">{title}</h2>
-                  <p className="text-sm leading-6" style={{ color: 'var(--app-text-muted)' }}>
-                    {text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </MotionDiv>
+              <div data-gsap="hero-copy" className="flex flex-wrap gap-4">
+                <Link to="/register" className="btn-primary">
+                  Sign up
+                  <ArrowRight size={16} />
+                </Link>
+                <Link to="/login" className="btn-secondary">
+                  Login
+                </Link>
+              </div>
 
-          <MotionDiv initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.08 }} className="relative col-span-12 lg:col-span-5">
-            <div data-gsap="orb-left" className="absolute -left-6 top-8 h-32 w-32 rounded-full bg-[#41514d]/24 blur-3xl" />
-            <div data-gsap="orb-right" className="absolute -right-2 bottom-12 h-36 w-36 rounded-full bg-[#243036]/28 blur-3xl" />
-            <div ref={previewRef} className="glass-card relative overflow-hidden rounded-[24px] p-5 [transform-style:preserve-3d]">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--app-accent-soft)] text-[var(--app-accent)]">
-                    <Bot size={20} />
-                  </div>
+              <div data-gsap="hero-copy" className="glass-card rounded-[28px] p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-semibold">Mate.ai demo</p>
-                    <p className="text-sm text-[var(--app-accent)]">Online</p>
+                    <p className="text-sm uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
+                      Access Mate.ai
+                    </p>
+                    <h2 className="mt-2 text-xl font-semibold">Create an account or continue to your workspace.</h2>
                   </div>
-                </div>
-                <div className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
-                  Live preview
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Link to="/login" className="btn-secondary justify-center">
+                      Login
+                    </Link>
+                    <Link to="/register" className="btn-primary justify-center">
+                      Sign up
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4 rounded-[28px] border border-white/10 bg-slate-950/35 p-4">
-                <div className="ml-auto max-w-[78%] rounded-[24px] rounded-br-md bg-gradient-to-br from-[#70837d] to-[#93a6a0] px-4 py-3 text-sm text-[#081012] shadow-lg shadow-black/20">
-                  Hi Mate.ai, how can you help my product team today?
+              <div ref={statGridRef} className="grid gap-4 md:grid-cols-3">
+                {quickStats.map(([title, text]) => (
+                  <div key={title} className="glass-card rounded-[20px] p-4">
+                    <h2 className="mb-2 text-sm font-semibold text-[var(--app-accent)]">{title}</h2>
+                    <p className="text-sm leading-6" style={{ color: 'var(--app-text-muted)' }}>
+                      {text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </MotionDiv>
+
+            <MotionDiv initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.08 }} className="relative col-span-12 lg:col-span-5">
+              <div data-gsap="orb-left" className="absolute -left-6 top-8 h-32 w-32 rounded-full bg-[#41514d]/24 blur-3xl" />
+              <div data-gsap="orb-right" className="absolute -right-2 bottom-12 h-36 w-36 rounded-full bg-[#243036]/28 blur-3xl" />
+              <div ref={previewRef} className="glass-card relative overflow-hidden rounded-[24px] p-5 [transform-style:preserve-3d]">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--app-accent-soft)] text-[var(--app-accent)]">
+                      <Bot size={20} />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Mate.ai demo</p>
+                      <p className="text-sm text-[var(--app-accent)]">Online</p>
+                    </div>
+                  </div>
+                  <div className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
+                    Live preview
+                  </div>
                 </div>
-                <div className="max-w-[82%] rounded-[24px] rounded-bl-md bg-white/7 px-4 py-3 text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>
-                  I can help with support automation, onboarding flows, FAQ generation, product research, customer response drafting, and saved conversation history for logged-in users.
-                </div>
-                <div className="ml-auto max-w-[74%] rounded-[24px] rounded-br-md bg-gradient-to-br from-[#60716e] to-[#7d9089] px-4 py-3 text-sm text-[#081012]">
-                  Show me the stack and security setup.
-                </div>
-                <div className="flex max-w-[82%] items-center gap-2 rounded-[24px] rounded-bl-md bg-white/7 px-4 py-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
-                  <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--app-accent)]" />
-                  React, Node.js, MongoDB, JWT auth, bcrypt hashing, protected routes, and reset-token workflows.
-                </div>
-                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/4 px-4 py-3">
-                  <span className="text-sm" style={{ color: 'var(--app-text-muted)' }}>
-                    Type a message...
-                  </span>
-                  <span className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6e817b] to-[#93a59f] text-[#081012]">
-                    <Send size={16} />
-                  </span>
+
+                <div className="space-y-4 rounded-[28px] border border-white/10 bg-slate-950/35 p-4">
+                  <div className="ml-auto max-w-[78%] rounded-[24px] rounded-br-md bg-gradient-to-br from-[#70837d] to-[#93a6a0] px-4 py-3 text-sm text-[#081012] shadow-lg shadow-black/20">
+                    Hi Mate.ai, how can you help my product team today?
+                  </div>
+                  <div className="max-w-[82%] rounded-[24px] rounded-bl-md bg-white/7 px-4 py-3 text-sm leading-7" style={{ color: 'var(--app-text-soft)' }}>
+                    I can help with support automation, onboarding flows, FAQ generation, product research, customer response drafting, and saved conversation history for logged-in users.
+                  </div>
+                  <div className="ml-auto max-w-[74%] rounded-[24px] rounded-br-md bg-gradient-to-br from-[#60716e] to-[#7d9089] px-4 py-3 text-sm text-[#081012]">
+                    Show me the stack and security setup.
+                  </div>
+                  <div className="flex max-w-[82%] items-center gap-2 rounded-[24px] rounded-bl-md bg-white/7 px-4 py-3 text-sm" style={{ color: 'var(--app-text-soft)' }}>
+                    <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--app-accent)]" />
+                    React, Node.js, MongoDB, JWT auth, bcrypt hashing, protected routes, and reset-token workflows.
+                  </div>
+                  <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/4 px-4 py-3">
+                    <span className="text-sm" style={{ color: 'var(--app-text-muted)' }}>
+                      Type a message...
+                    </span>
+                    <span className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6e817b] to-[#93a59f] text-[#081012]">
+                      <Send size={16} />
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </MotionDiv>
+            </MotionDiv>
           </div>
         </section>
 
@@ -424,7 +424,7 @@ const Portfolio = () => {
             <div className="glass-card rounded-[24px] p-8">
               <h3 className="font-display text-2xl font-semibold">Developer role</h3>
               <p className="mt-4 text-base leading-8" style={{ color: 'var(--app-text-soft)' }}>
-                I led the full-stack implementation across product design, frontend architecture, backend APIs, MongoDB models, chat persistence, and JWT authentication. This upgrade also introduces password recovery, production-safe configuration, better error handling, and deployment readiness.
+                I led the full-stack implementation across product design, frontend architecture, backend APIs, MongoDB models, chat persistence, and JWT authentication. This upgrade also introduced password recovery, production-safe configuration, better error handling, and deployment readiness.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {[
@@ -565,7 +565,7 @@ const Portfolio = () => {
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="glass-card rounded-[24px] p-8">
               <span className="section-kicker">Contact</span>
-              <h2 className="mt-5 font-display text-3xl font-semibold">Let's talk about Mate.ai.</h2>
+              <h2 className="mt-5 font-display text-3xl font-semibold">Let&apos;s talk about Mate.ai.</h2>
               <p className="mt-4 text-base leading-8" style={{ color: 'var(--app-text-soft)' }}>
                 Use the contact form to connect about demos, collaborations, hiring, or deployment support. The form is connected to the backend and can email notifications when SMTP credentials are configured.
               </p>
