@@ -6,15 +6,12 @@ const mongoose = require('mongoose');
 const FALLBACK_REPLY = "Sorry, something went wrong. Please try again.";
 
 function ensureDatabaseReady(res) {
-    if (mongoose.connection.readyState === 1) {
-        return true;
-    }
+    if (mongoose.connection.readyState === 1) return true;
 
     res.status(503).json({
         success: false,
-        message: 'Database connection is not ready. Please try again.'
+        message: 'Database connection not ready'
     });
-
     return false;
 }
 
@@ -25,10 +22,7 @@ function buildOwnedChatQuery(chatId, userId) {
 
     if (!chatId) return ownershipFilter;
 
-    return {
-        _id: chatId,
-        ...ownershipFilter
-    };
+    return { _id: chatId, ...ownershipFilter };
 }
 
 function serializeChat(chat) {
@@ -41,7 +35,7 @@ function serializeChat(chat) {
     };
 }
 
-/* ================= CREATE CHAT ================= */
+/* CREATE CHAT */
 async function createChat(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
@@ -49,10 +43,7 @@ async function createChat(req, res) {
         const { title } = req.body;
 
         if (!title?.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Chat title is required'
-            });
+            return res.status(400).json({ success: false });
         }
 
         const chat = await chatModel.create({
@@ -61,18 +52,15 @@ async function createChat(req, res) {
             title: title.trim()
         });
 
-        res.status(201).json({
-            success: true,
-            chat: serializeChat(chat)
-        });
+        res.json({ success: true, chat: serializeChat(chat) });
 
-    } catch (error) {
-        console.error("createChat error:", error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 }
 
-/* ================= GET CHATS ================= */
+/* GET CHATS */
 async function getChats(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
@@ -81,29 +69,18 @@ async function getChats(req, res) {
             .find(buildOwnedChatQuery(null, req.user._id))
             .sort({ lastActivity: -1 });
 
-        res.json({
-            success: true,
-            chats: chats.map(serializeChat)
-        });
+        res.json({ success: true, chats });
 
-    } catch (error) {
-        console.error("getChats error:", error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 }
 
-/* ================= GET MESSAGES ================= */
+/* GET MESSAGES */
 async function getMessages(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
-
-        const chat = await chatModel.findOne(
-            buildOwnedChatQuery(req.params.id, req.user._id)
-        );
-
-        if (!chat) {
-            return res.status(404).json({ success: false });
-        }
 
         const messages = await messageModel
             .find({ chat: req.params.id })
@@ -111,26 +88,21 @@ async function getMessages(req, res) {
 
         res.json({ success: true, messages });
 
-    } catch (error) {
-        console.error("getMessages error:", error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 }
 
-/* ================= SEND MESSAGE (MAIN FIX) ================= */
+/* SEND MESSAGE (SAFE AI HANDLING) */
 async function sendMessage(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
 
-        console.log("Incoming request:", req.body);
-
         const { message, chatId } = req.body;
 
         if (!message?.trim() || !chatId) {
-            return res.status(400).json({
-                success: false,
-                message: "message and chatId required"
-            });
+            return res.status(400).json({ success: false });
         }
 
         const chat = await chatModel.findOne(
@@ -138,13 +110,9 @@ async function sendMessage(req, res) {
         );
 
         if (!chat) {
-            return res.status(404).json({
-                success: false,
-                message: "Chat not found"
-            });
+            return res.status(404).json({ success: false });
         }
 
-        // Save user message
         await messageModel.create({
             user: req.user._id,
             chat: chatId,
@@ -157,9 +125,6 @@ async function sendMessage(req, res) {
             .sort({ createdAt: 1 })
             .limit(10);
 
-        console.log("Calling AI service...");
-
-        /* ===== AI CALL WITH PROTECTION ===== */
         let reply;
 
         try {
@@ -169,23 +134,15 @@ async function sendMessage(req, res) {
                     setTimeout(() => reject(new Error("AI timeout")), 10000)
                 )
             ]);
-        } catch (aiError) {
-            console.error("AI ERROR:", aiError);
-
-            return res.status(500).json({
-                success: false,
-                message: "AI service failed"
-            });
+        } catch (err) {
+            console.error("AI ERROR:", err);
+            return res.status(500).json({ success: false });
         }
 
-        if (!reply || !reply.trim()) {
-            return res.status(500).json({
-                success: false,
-                message: FALLBACK_REPLY
-            });
+        if (!reply) {
+            return res.status(500).json({ success: false });
         }
 
-        // Save AI reply
         await messageModel.create({
             user: req.user._id,
             chat: chatId,
@@ -196,42 +153,26 @@ async function sendMessage(req, res) {
         chat.lastActivity = new Date();
         await chat.save();
 
-        res.json({
-            success: true,
-            reply,
-            chat: serializeChat(chat)
-        });
+        res.json({ success: true, reply });
 
-    } catch (error) {
-        console.error("sendMessage error:", error);
-
-        res.status(500).json({
-            success: false,
-            message: error.message || FALLBACK_REPLY
-        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
     }
 }
 
-/* ================= DELETE CHAT ================= */
+/* DELETE CHAT */
 async function deleteChat(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
-
-        const chat = await chatModel.findOne(
-            buildOwnedChatQuery(req.params.id, req.user._id)
-        );
-
-        if (!chat) {
-            return res.status(404).json({ success: false });
-        }
 
         await messageModel.deleteMany({ chat: req.params.id });
         await chatModel.deleteOne({ _id: req.params.id });
 
         res.json({ success: true });
 
-    } catch (error) {
-        console.error("deleteChat error:", error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 }

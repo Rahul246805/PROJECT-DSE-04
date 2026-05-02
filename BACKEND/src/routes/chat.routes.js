@@ -1,32 +1,22 @@
 const express = require('express');
-const authMiddleware = require("../middlewares/auth.middleware")
-const chatController = require("../controllers/chat.controller")
-
+const authMiddleware = require("../middlewares/auth.middleware");
+const chatController = require("../controllers/chat.controller");
 
 const router = express.Router();
 
 /* POST /api/chat/ */
-router.post('/', authMiddleware.authUser, chatController.createChat)
-
+router.post('/', authMiddleware.authUser, chatController.createChat);
 
 /* GET /api/chat/ */
-router.get('/', authMiddleware.authUser, chatController.getChats)
-
+router.get('/', authMiddleware.authUser, chatController.getChats);
 
 /* GET /api/chat/messages/:id */
-router.get('/messages/:id', authMiddleware.authUser, chatController.getMessages)
-
+router.get('/messages/:id', authMiddleware.authUser, chatController.getMessages);
 
 /* POST /api/chat/message */
-router.post('/message', authMiddleware.authUser, chatController.sendMessage)
-
-
-/* PUT /api/chat/message/:id */
-router.put('/message/:id', authMiddleware.authUser, chatController.updateMessage)
-
+router.post('/message', authMiddleware.authUser, chatController.sendMessage);
 
 /* DELETE /api/chat/:id */
-router.delete('/:id', authMiddleware.authUser, chatController.deleteChat)
-
+router.delete('/:id', authMiddleware.authUser, chatController.deleteChat);
 
 module.exports = router;
