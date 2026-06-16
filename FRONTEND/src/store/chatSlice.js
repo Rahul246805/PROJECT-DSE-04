@@ -11,11 +11,13 @@ const chatSlice = createSlice({
   reducers: {
     startNewChat: {
       reducer(state, action) {
-        const { _id, title, preferredModel } = action.payload;
+        const { _id, title, preferredModel, roleMode, toolMode } = action.payload;
         state.chats.unshift({
           _id,
           title: title || 'New Chat',
           preferredModel: preferredModel || 'llama-3.3-70b-versatile',
+          roleMode: roleMode || 'developer',
+          toolMode: toolMode || 'general',
           messages: [],
         });
         state.activeChatId = _id;

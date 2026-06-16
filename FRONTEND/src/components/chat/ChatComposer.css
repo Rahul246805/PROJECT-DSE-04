@@ -135,6 +135,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.9rem;
+  flex-wrap: wrap;
   margin-top: 0.95rem;
   padding-top: 0.9rem;
   border-top: 1px solid rgba(95, 117, 118, 0.12);
@@ -224,6 +225,14 @@
   flex-wrap: wrap;
 }
 
+.composer-mode-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .composer-tool-group-secondary {
   margin-left: auto;
 }
@@ -252,6 +261,16 @@
   padding: 0.56rem 0.88rem;
   border-radius: 999px;
   cursor: pointer;
+}
+
+.composer-tool-pill.active {
+  border-color: rgba(143, 163, 157, 0.38);
+  background: rgba(143, 163, 157, 0.13);
+  color: #eef7f2;
+}
+
+.composer-select {
+  max-width: 100%;
 }
 
 .composer-tool-icon-strong {

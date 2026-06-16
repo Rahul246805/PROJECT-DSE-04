@@ -402,6 +402,29 @@
   animation: fadeUp 440ms ease;
 }
 
+.chat-capability-grid {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 920px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  animation: fadeUp 400ms ease;
+}
+
+.chat-capability-grid span {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(143, 163, 157, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--color-text-soft);
+  padding: 0.35rem 0.72rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .chat-loading-shell {
   width: min(100%, 860px);
   display: grid;

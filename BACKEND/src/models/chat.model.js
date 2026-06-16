@@ -21,6 +21,18 @@ const chatSchema = new mongoose.Schema({
         default: 'llama-3.3-70b-versatile',
         trim: true,
     },
+    roleMode: {
+        type: String,
+        enum: ['developer', 'student', 'researcher', 'career'],
+        default: 'developer',
+        trim: true,
+    },
+    toolMode: {
+        type: String,
+        enum: ['general', 'document', 'web', 'health', 'taxi', 'resume', 'admin'],
+        default: 'general',
+        trim: true,
+    },
     lastActivity: {
         type: Date,
         default: Date.now

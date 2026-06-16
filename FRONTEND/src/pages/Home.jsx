@@ -41,6 +41,37 @@ const FALLBACK_REPLY = 'Sorry, something went wrong. Please try again.';
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 const MAX_ATTACHMENT_TEXT_LENGTH = 1600;
 const MODEL_STORAGE_KEY = 'mate_selected_model';
+const ROLE_MODE_STORAGE_KEY = 'mate_selected_role_mode';
+const TOOL_MODE_STORAGE_KEY = 'mate_selected_tool_mode';
+
+const TOOL_PROMPT_TEMPLATES = {
+  document: 'Analyze this document. Summarize the main points, risks, action items, and important data:\n\n',
+  web: 'Search and verify this topic. Include source links if available, and separate confirmed facts from assumptions:\n\n',
+  health: 'Analyze this health report in plain language. Flag possible urgent issues and questions to ask a doctor:\n\n',
+  taxi: 'Estimate a taxi fare for this trip. Include assumptions for distance, time, base fare, waiting, tolls, and surge:\n\n',
+  resume: 'Analyze this resume for ATS fit, clarity, impact, keywords, and rewrite weak bullets:\n\n',
+  admin: 'Analyze these admin dashboard metrics. Identify trends, anomalies, risks, and recommended actions:\n\n',
+};
+
+const QUICK_ACTION_PROMPTS = {
+  'Document Analysis': TOOL_PROMPT_TEMPLATES.document,
+  'Web Search': TOOL_PROMPT_TEMPLATES.web,
+  'AI Health Report Analyzer': TOOL_PROMPT_TEMPLATES.health,
+  'Taxi Fare Estimator': TOOL_PROMPT_TEMPLATES.taxi,
+  'Career Assistant': 'Act as a career coach. Help me choose roles, improve positioning, prepare for interviews, and plan next steps:\n\n',
+  'Resume Analyzer': TOOL_PROMPT_TEMPLATES.resume,
+  'Admin Dashboard Analytics': TOOL_PROMPT_TEMPLATES.admin,
+};
+
+const QUICK_ACTION_TO_TOOL = {
+  'Document Analysis': 'document',
+  'Web Search': 'web',
+  'AI Health Report Analyzer': 'health',
+  'Taxi Fare Estimator': 'taxi',
+  'Career Assistant': 'general',
+  'Resume Analyzer': 'resume',
+  'Admin Dashboard Analytics': 'admin',
+};
 
 function buildAutoChatTitle(message) {
   const trimmed = message.trim();
@@ -215,6 +246,8 @@ const Home = () => {
   const [editingMessageContent, setEditingMessageContent] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem(MODEL_STORAGE_KEY) || 'llama-3.3-70b-versatile');
+  const [selectedMode, setSelectedMode] = useState(() => localStorage.getItem(ROLE_MODE_STORAGE_KEY) || 'developer');
+  const [selectedTool, setSelectedTool] = useState(() => localStorage.getItem(TOOL_MODE_STORAGE_KEY) || 'general');
   const [lastUsage, setLastUsage] = useState(null);
   const speechRecognitionRef = useRef(null);
   const speechStartInputRef = useRef('');
@@ -269,10 +302,24 @@ const Home = () => {
   }, [selectedModel]);
 
   useEffect(() => {
+    localStorage.setItem(ROLE_MODE_STORAGE_KEY, selectedMode);
+  }, [selectedMode]);
+
+  useEffect(() => {
+    localStorage.setItem(TOOL_MODE_STORAGE_KEY, selectedTool);
+  }, [selectedTool]);
+
+  useEffect(() => {
     if (activeChat?.preferredModel) {
       setSelectedModel(activeChat.preferredModel);
     }
-  }, [activeChat?.preferredModel]);
+    if (activeChat?.roleMode) {
+      setSelectedMode(activeChat.roleMode);
+    }
+    if (activeChat?.toolMode) {
+      setSelectedTool(activeChat.toolMode);
+    }
+  }, [activeChat?.preferredModel, activeChat?.roleMode, activeChat?.toolMode]);
 
   useEffect(() => {
     document.title =
@@ -427,7 +474,7 @@ const Home = () => {
     setTitleError('');
 
     try {
-      const response = await createChat(trimmedTitle);
+      const response = await createChat(trimmedTitle, selectedModel, selectedMode, selectedTool);
       dispatch(startNewChat(response.chat));
       setActivePanel('chat');
       setMessages([]);
@@ -566,16 +613,23 @@ const Home = () => {
   const handleQuickAction = useCallback((value) => {
     setActivePanel('chat');
     setSidebarOpen(false);
-    dispatch(setInput(value));
+    const nextTool = QUICK_ACTION_TO_TOOL[value] || 'general';
+    const prompt = QUICK_ACTION_PROMPTS[value] || value;
+    setSelectedTool(nextTool);
+    if (value === 'Career Assistant') {
+      setSelectedMode('career');
+    }
+    dispatch(setInput(prompt));
     focusComposerInput();
   }, [dispatch]);
 
   const handleToolAction = useCallback(async (action) => {
     const currentInput = input.trim();
 
-    if (action === 'image') {
+    if (TOOL_PROMPT_TEMPLATES[action]) {
       setActivePanel('chat');
-      dispatch(setInput(ensurePrefixedPrompt(currentInput, 'Create an image for: ')));
+      setSelectedTool(action);
+      dispatch(setInput(ensurePrefixedPrompt(currentInput, TOOL_PROMPT_TEMPLATES[action])));
       focusComposerInput();
       return;
     }
@@ -724,12 +778,20 @@ const Home = () => {
         },
       },
       {
-        id: 'image-prompt',
-        label: 'Create an image prompt',
-        description: 'Prefill the composer with an image generation request.',
-        shortcut: 'G',
-        keywords: ['image', 'generate', 'visual'],
-        onSelect: () => handleToolAction('image'),
+        id: 'document-analysis',
+        label: 'Analyze a document',
+        description: 'Use untrusted document context safely and extract action items.',
+        shortcut: 'D',
+        keywords: ['document', 'file', 'analysis'],
+        onSelect: () => handleToolAction('document'),
+      },
+      {
+        id: 'web-search',
+        label: 'Prepare web research',
+        description: 'Frame a search task with source checks and verification.',
+        shortcut: 'W',
+        keywords: ['web', 'search', 'research'],
+        onSelect: () => handleToolAction('web'),
       },
       {
         id: 'voice-input',
@@ -826,6 +888,8 @@ const Home = () => {
           messageId: currentEditingId,
           content: payloadMessage,
           model: selectedModel,
+          mode: selectedMode,
+          tool: selectedTool,
           signal: requestAbortRef.current.signal,
         });
 
@@ -847,7 +911,7 @@ const Home = () => {
       }
 
       if (!resolvedChatId || !resolvedChat) {
-        const createdChatResponse = await createChat(buildAutoChatTitle(displayedMessage), selectedModel);
+        const createdChatResponse = await createChat(buildAutoChatTitle(displayedMessage), selectedModel, selectedMode, selectedTool);
 
         if (!createdChatResponse?.chat?._id) {
           throw new Error(FALLBACK_REPLY);
@@ -862,6 +926,8 @@ const Home = () => {
         chatId: resolvedChatId,
         message: payloadMessage,
         model: selectedModel,
+        mode: selectedMode,
+        tool: selectedTool,
         userId: resolvedChat.userId || resolvedChat.user,
         signal: requestAbortRef.current.signal,
       });
@@ -932,6 +998,8 @@ const Home = () => {
         chatId: activeChatId,
         message: sourceUserMessage.rawContent || sourceUserMessage.content,
         model: selectedModel,
+        mode: selectedMode,
+        tool: selectedTool,
         userId: activeChat?.userId || activeChat?.user,
         signal: requestAbortRef.current.signal,
       });
@@ -992,6 +1060,8 @@ const Home = () => {
         messageId: sourceUserMessage.id,
         content: sourceUserMessage.rawContent || sourceUserMessage.content,
         model: selectedModel,
+        mode: selectedMode,
+        tool: selectedTool,
         signal: requestAbortRef.current.signal,
       });
 
@@ -1158,10 +1228,30 @@ const Home = () => {
                 <div className="chat-empty-badge">Mate.ai workspace</div>
                 <h2>Start calmer. Ship sharper.</h2>
                 <p>
-                  Plan, build, debug, and research in one responsive workspace designed for
-                  focused conversations, stronger mobile behavior, and a cleaner Mate.ai chat
-                  flow.
+                  Professional chat with memory, role-based AI modes, document analysis,
+                  search-ready prompts, voice input and output, prompt-injection protection,
+                  and focused assistants for health reports, taxi fares, careers, resumes,
+                  and admin analytics.
                 </p>
+              </div>
+
+              <div className="chat-capability-grid" aria-label="Mate.ai capabilities">
+                {[
+                  'Conversation Memory',
+                  'Streaming Responses',
+                  'Prompt Injection Protection',
+                  'Document Analysis',
+                  'Web Search',
+                  'Voice Input & Output',
+                  'Health Report Analyzer',
+                  'Taxi Fare Estimator',
+                  'Career Assistant',
+                  'Resume Analyzer',
+                  'Admin Dashboard Analytics',
+                  'Context Management',
+                ].map((capability) => (
+                  <span key={capability}>{capability}</span>
+                ))}
               </div>
 
               <div className="chat-empty-composer">
@@ -1182,6 +1272,10 @@ const Home = () => {
                   onStop={handleStopGeneration}
                   selectedModel={selectedModel}
                   onSelectModel={setSelectedModel}
+                  selectedMode={selectedMode}
+                  onSelectMode={setSelectedMode}
+                  selectedTool={selectedTool}
+                  onSelectTool={setSelectedTool}
                   lastUsage={lastUsage}
                   compact={false}
                 />
@@ -1219,6 +1313,10 @@ const Home = () => {
               onStop={handleStopGeneration}
               selectedModel={selectedModel}
               onSelectModel={setSelectedModel}
+              selectedMode={selectedMode}
+              onSelectMode={setSelectedMode}
+              selectedTool={selectedTool}
+              onSelectTool={setSelectedTool}
               lastUsage={lastUsage}
               compact
             />

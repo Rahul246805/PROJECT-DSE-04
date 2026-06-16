@@ -2,7 +2,7 @@ const chatModel = require('../models/chat.model');
 const messageModel = require('../models/message.model');
 const aiService = require('../services/ai.service');
 const mongoose = require('mongoose');
-const { AVAILABLE_MODELS, normalizeModel } = require('../services/llm.service');
+const { AVAILABLE_MODELS, normalizeMode, normalizeModel, normalizeTool } = require('../services/llm.service');
 
 const FALLBACK_REPLY = "Sorry, something went wrong. Please try again.";
 const MAX_CONVERSATION_MESSAGES = 12;
@@ -48,6 +48,8 @@ function serializeChat(chat) {
         user: chat.user,
         userId: chat.userId || chat.user,
         preferredModel: chat.preferredModel || normalizeModel(),
+        roleMode: normalizeMode(chat.roleMode),
+        toolMode: normalizeTool(chat.toolMode),
     };
 }
 
@@ -57,6 +59,14 @@ function normalizeUserMessage(value) {
 
 function extractModel(value) {
     return AVAILABLE_MODELS.includes(value) ? value : normalizeModel(value);
+}
+
+function extractMode(value) {
+    return value ? normalizeMode(value) : null;
+}
+
+function extractTool(value) {
+    return value ? normalizeTool(value) : null;
 }
 
 async function loadConversation(chatId) {
@@ -72,7 +82,7 @@ async function createChat(req, res) {
     try {
         if (!ensureDatabaseReady(res)) return;
 
-        const { title, preferredModel } = req.body;
+        const { title, preferredModel, roleMode, toolMode } = req.body;
 
         if (!title?.trim()) {
             return res.status(400).json({ success: false });
@@ -83,6 +93,8 @@ async function createChat(req, res) {
             userId: req.user._id,
             title: title.trim(),
             preferredModel: extractModel(preferredModel),
+            roleMode: normalizeMode(roleMode),
+            toolMode: normalizeTool(toolMode),
         });
 
         res.json({ success: true, chat: serializeChat(chat) });
@@ -144,6 +156,8 @@ async function sendMessage(req, res) {
         const normalizedMessage = normalizeUserMessage(req.body?.message);
         const { chatId } = req.body;
         const requestedModel = extractModel(req.body?.model);
+        const requestedMode = extractMode(req.body?.mode);
+        const requestedTool = extractTool(req.body?.tool);
 
         if (!normalizedMessage || !chatId) {
             return res.status(400).json({
@@ -175,6 +189,8 @@ async function sendMessage(req, res) {
         try {
             result = await aiService.generateResponse(conversation, {
                 model: requestedModel || chat.preferredModel,
+                mode: requestedMode || chat.roleMode,
+                tool: requestedTool || chat.toolMode,
             });
         } catch (err) {
             console.error("AI ERROR:", err);
@@ -204,6 +220,8 @@ async function sendMessage(req, res) {
 
         chat.lastActivity = new Date();
         chat.preferredModel = result?.model || requestedModel || chat.preferredModel;
+        chat.roleMode = requestedMode || chat.roleMode;
+        chat.toolMode = requestedTool || chat.toolMode;
         await chat.save();
 
         res.json({
@@ -231,6 +249,8 @@ async function updateMessage(req, res) {
         const { messageId } = req.params;
         const content = normalizeUserMessage(req.body?.content);
         const requestedModel = extractModel(req.body?.model);
+        const requestedMode = extractMode(req.body?.mode);
+        const requestedTool = extractTool(req.body?.tool);
 
         if (!messageId || !content) {
             return res.status(400).json({
@@ -269,6 +289,8 @@ async function updateMessage(req, res) {
 
         const result = await aiService.generateResponse(conversation, {
             model: requestedModel || chat.preferredModel,
+            mode: requestedMode || chat.roleMode,
+            tool: requestedTool || chat.toolMode,
         });
         const reply = typeof result === 'string' ? result : result?.reply;
 
@@ -290,6 +312,8 @@ async function updateMessage(req, res) {
 
         chat.lastActivity = new Date();
         chat.preferredModel = result?.model || requestedModel || chat.preferredModel;
+        chat.roleMode = requestedMode || chat.roleMode;
+        chat.toolMode = requestedTool || chat.toolMode;
         await chat.save();
 
         return res.json({

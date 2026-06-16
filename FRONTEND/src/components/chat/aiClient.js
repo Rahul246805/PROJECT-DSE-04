@@ -68,8 +68,8 @@ export const fetchChats = async () => {
   return data;
 };
 
-export const createChat = async (title, preferredModel) => {
-  const { data } = await apiClient.post('/chat', { title, preferredModel });
+export const createChat = async (title, preferredModel, roleMode, toolMode) => {
+  const { data } = await apiClient.post('/chat', { title, preferredModel, roleMode, toolMode });
   return data;
 };
 
@@ -83,19 +83,25 @@ export const deleteChat = async (chatId) => {
   return data;
 };
 
-export const sendChatMessage = async ({ chatId, message, userId, model, signal }) => {
+export const sendChatMessage = async ({ chatId, message, userId, model, mode, tool, signal }) => {
   const payload = {
     chatId,
     message,
     ...(model ? { model } : {}),
+    ...(mode ? { mode } : {}),
+    ...(tool ? { tool } : {}),
     ...(userId ? { userId } : {}),
   };
   const { data } = await apiClient.post('/chat/message', payload, { signal });
   return data;
 };
 
-export const updateChatMessage = async ({ messageId, content, model, signal }) => {
-  const { data } = await apiClient.put(`/chat/message/${messageId}`, { content, ...(model ? { model } : {}) }, { signal });
+export const updateChatMessage = async ({ messageId, content, model, mode, tool, signal }) => {
+  const { data } = await apiClient.put(
+    `/chat/message/${messageId}`,
+    { content, ...(model ? { model } : {}), ...(mode ? { mode } : {}), ...(tool ? { tool } : {}) },
+    { signal }
+  );
   return data;
 };
 

@@ -2,15 +2,22 @@ import React, { useLayoutEffect, useRef } from 'react';
 import './ChatComposer.css';
 
 const QUICK_ACTIONS = [
-  'AI script writer',
-  'Coding Assistant',
-  'Essay writer',
-  'Translate',
-  'Research assistant',
+  'Document Analysis',
+  'Web Search',
+  'AI Health Report Analyzer',
+  'Taxi Fare Estimator',
+  'Career Assistant',
+  'Resume Analyzer',
+  'Admin Dashboard Analytics',
 ];
 
 const TOOL_ACTIONS = [
-  { label: 'Image prompt', action: 'image' },
+  { label: 'Doc', action: 'document' },
+  { label: 'Search', action: 'web' },
+  { label: 'Health', action: 'health' },
+  { label: 'Taxi', action: 'taxi' },
+  { label: 'Resume', action: 'resume' },
+  { label: 'Admin', action: 'admin' },
 ];
 
 const ChatComposer = ({
@@ -30,6 +37,10 @@ const ChatComposer = ({
   onStop,
   selectedModel = 'llama-3.3-70b-versatile',
   onSelectModel,
+  selectedMode = 'developer',
+  onSelectMode,
+  selectedTool = 'general',
+  onSelectTool,
   lastUsage = null,
   compact = false,
 }) => {
@@ -127,6 +138,33 @@ const ChatComposer = ({
             }}
           />
           <div className="composer-toolbar">
+            <div className="composer-mode-row" aria-label="AI workspace modes">
+              <select
+                className="composer-tool-pill composer-select"
+                aria-label="Select role mode"
+                value={selectedMode}
+                onChange={(event) => onSelectMode?.(event.target.value)}
+              >
+                <option value="developer">Developer mode</option>
+                <option value="student">Student mode</option>
+                <option value="researcher">Researcher mode</option>
+                <option value="career">Career coach mode</option>
+              </select>
+              <select
+                className="composer-tool-pill composer-select"
+                aria-label="Select tool mode"
+                value={selectedTool}
+                onChange={(event) => onSelectTool?.(event.target.value)}
+              >
+                <option value="general">General chat</option>
+                <option value="document">Document analysis</option>
+                <option value="web">Web search</option>
+                <option value="health">Health report</option>
+                <option value="taxi">Taxi estimator</option>
+                <option value="resume">Resume analyzer</option>
+                <option value="admin">Admin analytics</option>
+              </select>
+            </div>
             <div className="composer-tool-group composer-tool-group-primary">
               <button
                 type="button"
@@ -148,7 +186,7 @@ const ChatComposer = ({
                 <button
                   key={tool.action}
                   type="button"
-                  className="composer-tool-pill"
+                  className={`composer-tool-pill ${selectedTool === tool.action ? 'active' : ''}`}
                   onClick={() => onToolAction?.(tool.action)}
                 >
                   {tool.label}
@@ -157,7 +195,7 @@ const ChatComposer = ({
             </div>
             <div className="composer-tool-group composer-tool-group-secondary">
               <select
-                className="composer-tool-pill"
+                className="composer-tool-pill composer-select"
                 aria-label="Select AI model"
                 value={selectedModel}
                 onChange={(event) => onSelectModel?.(event.target.value)}

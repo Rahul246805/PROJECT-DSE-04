@@ -80,6 +80,8 @@ async function generateResponse(history = [], options = {}) {
         const result = await generateModelResponse({
             history: conversation,
             model: normalizeModel(options.model),
+            mode: options.mode,
+            tool: options.tool,
         });
 
         if (!result?.reply) {
