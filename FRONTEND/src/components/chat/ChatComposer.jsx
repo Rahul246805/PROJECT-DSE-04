@@ -201,8 +201,9 @@ const ChatComposer = ({
                 onChange={(event) => onSelectModel?.(event.target.value)}
               >
                 <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
-                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 70B</option>
-                <option value="gemma2-9b-it">Gemma 2 9B</option>
+                <option value="llama-3.1-8b-instant">Llama 3.1 8B Fast</option>
+                <option value="openai/gpt-oss-120b">GPT OSS 120B</option>
+                <option value="openai/gpt-oss-20b">GPT OSS 20B</option>
               </select>
               <button
                 type="button"

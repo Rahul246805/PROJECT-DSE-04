@@ -2,8 +2,9 @@ const Groq = require('groq-sdk');
 
 const AVAILABLE_MODELS = [
     'llama-3.3-70b-versatile',
-    'deepseek-r1-distill-llama-70b',
-    'gemma2-9b-it',
+    'llama-3.1-8b-instant',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
 ];
 const DEFAULT_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const TEMPERATURE = 0.2;
@@ -126,6 +127,27 @@ function normalizeMode(mode) {
     return ROLE_MODES[mode] ? mode : 'developer';
 }
 
+function isModelSelectionError(error) {
+    const statusCode = error?.status || error?.statusCode || error?.response?.status;
+    const message = String(error?.message || '').toLowerCase();
+    const code = String(error?.error?.code || error?.code || '').toLowerCase();
+
+    return statusCode === 400
+        && (
+            code.includes('model')
+            || message.includes('model')
+            || message.includes('decommissioned')
+            || message.includes('not found')
+            || message.includes('unsupported')
+        );
+}
+
+function isAuthenticationError(error) {
+    const statusCode = error?.status || error?.statusCode || error?.response?.status;
+
+    return statusCode === 401 || statusCode === 403;
+}
+
 function normalizeTool(tool) {
     return TOOL_PROMPTS[tool] ? tool : 'general';
 }
@@ -185,30 +207,50 @@ async function requestGroqCompletion(model, messages) {
 async function generateModelResponse({ history = [], model, mode, tool }) {
     const messages = buildMessages({ history, mode, tool });
     const resolvedModel = normalizeModel(model);
+    const candidateModels = [
+        resolvedModel,
+        ...AVAILABLE_MODELS.filter((candidate) => candidate !== resolvedModel),
+    ];
     let lastError = null;
 
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
-        try {
-            const completion = await requestGroqCompletion(resolvedModel, messages);
-            const reply = completion.choices?.[0]?.message?.content?.trim();
+    for (const candidateModel of candidateModels) {
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+            try {
+                const completion = await requestGroqCompletion(candidateModel, messages);
+                const reply = completion.choices?.[0]?.message?.content?.trim();
 
-            if (!reply) {
-                throw new Error('Groq returned an empty response');
+                if (!reply) {
+                    throw new Error('Groq returned an empty response');
+                }
+
+                return {
+                    reply,
+                    model: completion.model || candidateModel,
+                    usage: completion.usage || null,
+                };
+            } catch (error) {
+                lastError = error;
+
+                if (isAuthenticationError(error)) {
+                    throw error;
+                }
+
+                if (isModelSelectionError(error)) {
+                    break;
+                }
+
+                if (!isRetriableError(error) || attempt === MAX_ATTEMPTS) {
+                    break;
+                }
+
+                await sleep(400 * attempt);
             }
+        }
 
-            return {
-                reply,
-                model: completion.model || resolvedModel,
-                usage: completion.usage || null,
-            };
-        } catch (error) {
-            lastError = error;
-
-            if (!isRetriableError(error) || attempt === MAX_ATTEMPTS) {
+        if (lastError && !isModelSelectionError(lastError)) {
+            if (!isRetriableError(lastError)) {
                 break;
             }
-
-            await sleep(400 * attempt);
         }
     }
 

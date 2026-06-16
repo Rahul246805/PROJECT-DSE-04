@@ -2,6 +2,7 @@ const { generateModelResponse, hasModelAccess, normalizeModel } = require('./llm
 
 const FALLBACK_REPLY = 'I hit a response issue on my side. Please send your prompt again and I will try once more.';
 const MISSING_MODEL_REPLY = 'Mate.AI needs a valid GROQ_API_KEY in BACKEND/.env before chat replies can be generated.';
+const INVALID_KEY_REPLY = 'Mate.AI could not authenticate with the AI provider. Please check GROQ_API_KEY in Render and redeploy.';
 const MAX_HISTORY_MESSAGES = 12;
 const MAX_MESSAGE_CHARS = 4000;
 
@@ -57,6 +58,12 @@ function buildLocalFallbackReply(history = []) {
     return MISSING_MODEL_REPLY;
 }
 
+function isProviderAuthError(error) {
+    const statusCode = error?.status || error?.statusCode || error?.response?.status;
+
+    return statusCode === 401 || statusCode === 403;
+}
+
 async function generateResponse(history = [], options = {}) {
     const conversation = buildConversation(history);
 
@@ -95,6 +102,15 @@ async function generateResponse(history = [], options = {}) {
         return result;
     } catch (error) {
         console.error('AI generation failed:', error.message);
+
+        if (isProviderAuthError(error)) {
+            return {
+                reply: INVALID_KEY_REPLY,
+                model: normalizeModel(options.model),
+                usage: null,
+            };
+        }
+
         return {
             reply: FALLBACK_REPLY,
             model: normalizeModel(options.model),
