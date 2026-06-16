@@ -311,7 +311,9 @@
   border-radius: 0.8rem;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, rgba(143, 163, 157, 0.18), rgba(56, 69, 76, 0.22));
+  overflow: hidden;
+  object-fit: cover;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(139, 92, 246, 0.22));
   font-weight: 800;
   flex-shrink: 0;
 }

@@ -1,30 +1,27 @@
-import axios from "axios";
+import axios from 'axios';
 
-const AUTH_TOKEN_KEY = "mate_token";
-const AUTH_USER_KEY = "mate_user";
+let authTokenGetter = async () => null;
 
 function resolveApiBaseUrl() {
   const envValue = import.meta.env.VITE_API_URL?.trim();
   const isProduction = import.meta.env.PROD;
 
   if (!envValue) {
-    return "/api";
+    return '/api';
   }
 
-  const normalized = envValue.replace(/\/$/, "");
+  const normalized = envValue.replace(/\/$/, '');
   const lowerValue = normalized.toLowerCase();
   const isPlaceholderValue =
-    lowerValue.includes("your-backend-service") ||
-    lowerValue.includes("your-render-backend-url") ||
-    lowerValue.includes("example.com");
+    lowerValue.includes('your-backend-service') ||
+    lowerValue.includes('your-render-backend-url') ||
+    lowerValue.includes('example.com');
   const isLocalBackend =
-    lowerValue.includes("127.0.0.1") ||
-    lowerValue.includes("localhost");
+    lowerValue.includes('127.0.0.1') ||
+    lowerValue.includes('localhost');
 
-  // In production, prefer the same Render service backend when env config is
-  // still a placeholder or points at a local development server.
   if (isProduction && (isPlaceholderValue || isLocalBackend)) {
-    return "/api";
+    return '/api';
   }
 
   return normalized;
@@ -32,98 +29,47 @@ function resolveApiBaseUrl() {
 
 const baseURL = resolveApiBaseUrl();
 
-/* ================= AXIOS CLIENT ================= */
+export function setAuthTokenGetter(getter) {
+  authTokenGetter = typeof getter === 'function' ? getter : async () => null;
+}
+
+export function setClerkTokenGetter(getter) {
+  setAuthTokenGetter(getter);
+}
 
 export const apiClient = axios.create({
   baseURL,
-  withCredentials: true,
   timeout: 30000,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-/* ================= TOKEN ATTACH ================= */
-
-apiClient.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(AUTH_TOKEN_KEY) : null;
+apiClient.interceptors.request.use(async (config) => {
+  const token = await authTokenGetter();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers?.Authorization) {
+    delete config.headers.Authorization;
   }
 
   return config;
 });
 
-/* ================= TOKEN SAVE ================= */
-
-export const saveAuthToken = (token) => {
-  if (!token || typeof window === 'undefined') return;
-
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
-  document.cookie = `token=${token}; path=/;`;
-};
-
-export const saveAuthUser = (user) => {
-  if (!user || typeof window === 'undefined') return;
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-};
-
-export const getStoredAuthUser = () => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const value = localStorage.getItem(AUTH_USER_KEY);
-
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    localStorage.removeItem(AUTH_USER_KEY);
-    return null;
-  }
-};
-
-export const getAuthToken = () => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return localStorage.getItem(AUTH_TOKEN_KEY);
-};
-
-export const isAuthenticated = () => Boolean(getAuthToken());
-
-export const fetchCurrentUser = async () => {
-  const { data } = await apiClient.get('/auth/me');
-  saveAuthUser(data?.user);
+export const fetchApiHealth = async () => {
+  const { data } = await apiClient.get('/health');
   return data;
 };
-
-export const clearAuthToken = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
-  delete apiClient.defaults.headers.common.Authorization;
-  document.cookie = "token=; Max-Age=0; path=/;";
-};
-
-/* ================= CHAT APIs ================= */
 
 export const fetchChats = async () => {
-  const { data } = await apiClient.get("/chat");
+  const { data } = await apiClient.get('/chat');
   return data;
 };
 
-export const createChat = async (title) => {
-  const { data } = await apiClient.post("/chat", { title });
+export const createChat = async (title, preferredModel) => {
+  const { data } = await apiClient.post('/chat', { title, preferredModel });
   return data;
 };
 
@@ -137,57 +83,19 @@ export const deleteChat = async (chatId) => {
   return data;
 };
 
-export const sendChatMessage = async ({ chatId, message, userId }) => {
+export const sendChatMessage = async ({ chatId, message, userId, model, signal }) => {
   const payload = {
     chatId,
     message,
+    ...(model ? { model } : {}),
     ...(userId ? { userId } : {}),
   };
-  const { data } = await apiClient.post('/chat/message', payload);
+  const { data } = await apiClient.post('/chat/message', payload, { signal });
   return data;
 };
 
-export const updateChatMessage = async ({ messageId, content }) => {
-  const { data } = await apiClient.put(`/chat/message/${messageId}`, { content });
-  return data;
-};
-
-/* ================= AUTH APIs ================= */
-
-export const loginUser = async (payload) => {
-  const { data } = await apiClient.post("/auth/login", payload);
-  saveAuthToken(data?.token);
-  saveAuthUser(data?.user);
-  return data;
-};
-
-export const registerUser = async (payload) => {
-  const { data } = await apiClient.post("/auth/register", payload);
-  return data;
-};
-
-export const createGuestSession = async () => {
-  const { data } = await apiClient.post("/auth/guest");
-  saveAuthToken(data?.token);
-  saveAuthUser(data?.user);
-  return data;
-};
-
-export const logoutUser = async () => {
-  try {
-    await apiClient.post('/auth/logout');
-  } finally {
-    clearAuthToken();
-  }
-};
-
-export const forgotPassword = async (payload) => {
-  const { data } = await apiClient.post('/auth/forgot-password', payload);
-  return data;
-};
-
-export const resetPassword = async ({ token, password }) => {
-  const { data } = await apiClient.post(`/auth/reset-password/${token}`, { password });
+export const updateChatMessage = async ({ messageId, content, model, signal }) => {
+  const { data } = await apiClient.put(`/chat/message/${messageId}`, { content, ...(model ? { model } : {}) }, { signal });
   return data;
 };
 
@@ -196,7 +104,40 @@ export const submitContactForm = async (payload) => {
   return data;
 };
 
-/* ================= ERROR HANDLER ================= */
+export const loginWithPassword = async (payload) => {
+  const { data } = await apiClient.post('/auth/login', payload);
+  return data;
+};
+
+export const registerWithPassword = async (payload) => {
+  const { data } = await apiClient.post('/auth/register', payload);
+  return data;
+};
+
+export const loginAsGuest = async () => {
+  const { data } = await apiClient.post('/auth/guest');
+  return data;
+};
+
+export const logoutCurrentUser = async () => {
+  const { data } = await apiClient.post('/auth/logout');
+  return data;
+};
+
+export const fetchCurrentUser = async () => {
+  const { data } = await apiClient.get('/auth/me');
+  return data;
+};
+
+export const requestPasswordReset = async (payload) => {
+  const { data } = await apiClient.post('/auth/forgot-password', payload);
+  return data;
+};
+
+export const resetPasswordWithToken = async ({ token, password }) => {
+  const { data } = await apiClient.post(`/auth/reset-password/${token}`, { password });
+  return data;
+};
 
 export function getErrorMessage(error) {
   if (axios.isAxiosError(error)) {
@@ -204,11 +145,14 @@ export function getErrorMessage(error) {
     const message = error.response?.data?.message;
 
     if (message) return message;
-    if (status === 401) return "Session expired. Please login again.";
-    if (status === 404) return "API not found";
-    if (error.code === "ECONNABORTED") return "Request timeout";
-    return "Server error";
+    if (error.code === 'ERR_CANCELED') return 'Request stopped.';
+    if (error.code === 'ERR_NETWORK') return 'Unable to reach the server.';
+    if (status === 401) return 'Please sign in to continue.';
+    if (status === 404) return 'API not found.';
+    if (status === 429) return 'Too many requests. Please wait a moment and try again.';
+    if (error.code === 'ECONNABORTED') return 'Request timeout.';
+    return 'Server error.';
   }
 
-  return error?.message || "Network error";
+  return error?.message || 'Network error.';
 }

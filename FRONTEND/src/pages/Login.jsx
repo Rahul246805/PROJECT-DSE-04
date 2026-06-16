@@ -1,136 +1,136 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import AuthLayout from '../components/AuthLayout.jsx';
-import {
-  getErrorMessage,
-  loginUser,
-} from '../components/chat/aiClient.js';
-import { validateEmail } from '../lib/validation.js';
+import AuthLoadingScreen from '../components/auth/AuthLoadingScreen.jsx';
+import AuthShell from '../components/auth/AuthShell.jsx';
+import ClerkAuthCard from '../components/auth/ClerkAuthCard.jsx';
+import { clerkAppearance, CLERK_PATHS } from '../lib/clerk.js';
+import { AuthSignIn, isClerkEnabled, isFirebaseEnabled, useAppAuth } from '../lib/auth.jsx';
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [form, setForm] = React.useState({
-    email: location.state?.email || '',
-    password: '',
-  });
-  const [errors, setErrors] = React.useState({});
-  const [submitting, setSubmitting] = React.useState(false);
+  const { signInWithPassword, signInAsGuest } = useAppAuth();
+  const [form, setForm] = React.useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    document.title = 'Mate.ai | Sign in';
+    document.title = 'Mate.AI | Sign In';
   }, []);
-
-  const targetPath = location.state?.from || '/app';
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
-    setErrors((current) => ({ ...current, [name]: '' }));
-  };
-
-  const validate = () => {
-    const nextErrors = {
-      email: validateEmail(form.email),
-      password: !form.password ? 'Password is required.' : '',
-    };
-
-    setErrors(nextErrors);
-    return !Object.values(nextErrors).some(Boolean);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validate()) {
+    if (!form.email.trim() || !form.password) {
+      toast.error('Email and password are required.');
       return;
     }
 
-    setSubmitting(true);
-
     try {
-      await loginUser({
+      setIsSubmitting(true);
+      await signInWithPassword({
         email: form.email.trim(),
         password: form.password,
       });
-      toast.success('Welcome back to Mate.ai.');
-      navigate(targetPath, { replace: true });
+      navigate('/app', { replace: true });
     } catch (error) {
-      const message = getErrorMessage(error);
-      if (message.toLowerCase().includes('password')) {
-        setErrors((current) => ({ ...current, password: message }));
-      } else {
-        setErrors((current) => ({ ...current, email: message }));
-      }
-      toast.error(message);
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to sign in.');
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <AuthLayout
-      title="Sign in"
-      subtitle="Continue into your Mate.ai dashboard with secure session handling and synced chat history."
-      points={[
-        'JWT-based login with stored session token',
-        'Graceful API and validation error states',
-        'Protected access before entering the chat workspace',
-      ]}
-    >
-      <form className="mx-auto w-full max-w-[400px] space-y-4" onSubmit={handleSubmit} noValidate>
-        <div className="field-shell">
-          <label className="field-label" htmlFor="login-email">
-            Email
-          </label>
-          <input
-            id="login-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className="field-input"
-            placeholder="you@example.com"
-            value={form.email}
-            onChange={handleChange}
-          />
-          {errors.email ? <p className="text-sm text-rose-300">{errors.email}</p> : null}
-        </div>
+  const handleGuestLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      await signInAsGuest();
+      navigate('/app', { replace: true });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to start guest session.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-        <div className="field-shell">
-          <div className="flex items-center justify-between">
-            <label className="field-label" htmlFor="login-password">
-              Password
-            </label>
-            <Link to="/forgot-password" className="text-sm text-cyan-300 transition hover:text-cyan-200">
-              Forgot Password?
+  const clerkMode = isClerkEnabled();
+  const firebaseMode = isFirebaseEnabled();
+
+  return (
+    <AuthShell
+      title="Welcome back to Mate.AI"
+      subtitle={clerkMode
+        ? 'Sign in with the method that fits you best, then jump straight into your protected AI dashboard.'
+        : firebaseMode
+          ? 'Sign in with Firebase email/password and continue directly into your secure Mate.AI workspace.'
+        : 'Sign in with your email and password, or launch a guest session to get back into the workspace quickly.'}
+      mode="sign-in"
+    >
+      {clerkMode ? (
+        <ClerkAuthCard helperTitle="Forgot password included">
+          <AuthSignIn
+            routing="path"
+            path={CLERK_PATHS.signIn}
+            signUpUrl={CLERK_PATHS.signUp}
+            fallbackRedirectUrl={CLERK_PATHS.afterSignIn}
+            forceRedirectUrl={CLERK_PATHS.afterSignIn}
+            appearance={clerkAppearance}
+            fallback={
+              <AuthLoadingScreen
+                title="Loading sign-in..."
+                description="Connecting secure sign-in providers and passwordless options."
+              />
+            }
+          />
+        </ClerkAuthCard>
+      ) : (
+        <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,15,30,0.92),rgba(5,10,20,0.92))] p-6">
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="mb-2 block text-sm text-slate-300" htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100 outline-none"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm text-slate-300" htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100 outline-none"
+                placeholder="Enter your password"
+              />
+            </div>
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full justify-center">
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+          <button type="button" disabled={isSubmitting} onClick={handleGuestLogin} className="btn-secondary mt-3 w-full justify-center">
+            Continue as guest
+          </button>
+          <div className="mt-5 flex flex-col gap-2 text-sm text-slate-400">
+            <Link to="/forgot-password" className="text-cyan-300 hover:text-fuchsia-300">
+              Forgot password?
+            </Link>
+            <Link to="/register" className="text-cyan-300 hover:text-fuchsia-300">
+              Create a new account
             </Link>
           </div>
-          <input
-            id="login-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            className="field-input"
-            placeholder="Enter your password"
-            value={form.password}
-            onChange={handleChange}
-          />
-          {errors.password ? <p className="text-sm text-rose-300">{errors.password}</p> : null}
         </div>
-
-        <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
-          {submitting ? 'Signing in...' : 'Sign in to Mate.ai'}
-        </button>
-      </form>
-
-      <div className="mx-auto flex w-full max-w-[400px] items-center justify-between text-sm" style={{ color: 'var(--app-text-muted)' }}>
-        <span>New here?</span>
-        <Link to="/register" className="font-semibold text-violet-300 transition hover:text-violet-200">
-          Create an account
-        </Link>
-      </div>
-    </AuthLayout>
+      )}
+    </AuthShell>
   );
 };
 

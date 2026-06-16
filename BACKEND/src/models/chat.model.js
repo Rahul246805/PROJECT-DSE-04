@@ -16,6 +16,11 @@ const chatSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    preferredModel: {
+        type: String,
+        default: 'llama-3.3-70b-versatile',
+        trim: true,
+    },
     lastActivity: {
         type: Date,
         default: Date.now

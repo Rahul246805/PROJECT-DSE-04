@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,16 +30,17 @@ import {
   deleteChat,
   fetchChats,
   fetchMessages,
-  getStoredAuthUser,
   getErrorMessage,
-  logoutUser,
   sendChatMessage,
   updateChatMessage,
 } from '../components/chat/aiClient.js';
+import { clerkAppearance, mapClerkUserToProfile } from '../lib/clerk.js';
+import { AuthUserButton, useAppAuth } from '../lib/auth.jsx';
 
 const FALLBACK_REPLY = 'Sorry, something went wrong. Please try again.';
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 const MAX_ATTACHMENT_TEXT_LENGTH = 1600;
+const MODEL_STORAGE_KEY = 'mate_selected_model';
 
 function buildAutoChatTitle(message) {
   const trimmed = message.trim();
@@ -136,6 +137,8 @@ function normalizeMessageRecord(message) {
     error: false,
     createdAt: message.createdAt || new Date().toISOString(),
     streaming: false,
+    usage: message.usage || null,
+    model: message.model || '',
   };
 }
 
@@ -190,6 +193,7 @@ function ensurePrefixedPrompt(currentInput, prefix) {
 const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { signOut, user, mode } = useAppAuth();
   const chats = useSelector((state) => state.chat.chats);
   const activeChatId = useSelector((state) => state.chat.activeChatId);
   const input = useSelector((state) => state.chat.input);
@@ -210,10 +214,18 @@ const Home = () => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingMessageContent, setEditingMessageContent] = useState('');
   const [attachments, setAttachments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(() => getStoredAuthUser());
+  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem(MODEL_STORAGE_KEY) || 'llama-3.3-70b-versatile');
+  const [lastUsage, setLastUsage] = useState(null);
   const speechRecognitionRef = useRef(null);
   const speechStartInputRef = useRef('');
   const speechHadResultRef = useRef(false);
+  const requestAbortRef = useRef(null);
+  const currentUser = useMemo(() => (user ? mapClerkUserToProfile(user) : null), [user]);
+  const authProviderLabel = useMemo(() => {
+    if (mode === 'firebase') return 'Firebase + backend session';
+    if (mode === 'clerk') return 'Clerk + backend session';
+    return 'Local backend session';
+  }, [mode]);
 
   const activeChat = useMemo(
     () => chats.find((chat) => chat._id === activeChatId) ?? null,
@@ -230,7 +242,7 @@ const Home = () => {
     return null;
   }, [messages]);
 
-  const clearAttachments = () => {
+  const clearAttachments = useCallback(() => {
     setAttachments((current) => {
       current.forEach((attachment) => {
         if (attachment.previewUrl) {
@@ -240,7 +252,7 @@ const Home = () => {
 
       return [];
     });
-  };
+  }, []);
 
   const syncMessagesForChat = async (chatId, streamLastAi = false) => {
     const response = await fetchMessages(chatId);
@@ -251,6 +263,16 @@ const Home = () => {
     setMessages(nextMessages);
     return nextMessages;
   };
+
+  useEffect(() => {
+    localStorage.setItem(MODEL_STORAGE_KEY, selectedModel);
+  }, [selectedModel]);
+
+  useEffect(() => {
+    if (activeChat?.preferredModel) {
+      setSelectedModel(activeChat.preferredModel);
+    }
+  }, [activeChat?.preferredModel]);
 
   useEffect(() => {
     document.title =
@@ -271,7 +293,6 @@ const Home = () => {
 
         if (ignore) return;
 
-        setCurrentUser(getStoredAuthUser());
         dispatch(setChats(availableChats));
 
         if (availableChats.length > 0) {
@@ -307,7 +328,7 @@ const Home = () => {
     setEditingMessageContent('');
     clearAttachments();
     setCommandPaletteOpen(false);
-  }, [activeChatId, activePanel]);
+  }, [activeChatId, activePanel, clearAttachments]);
 
   useEffect(
     () => () => {
@@ -375,7 +396,7 @@ const Home = () => {
     };
   }, [activeChatId, activePanel]);
 
-  const handleOpenNewChatModal = () => {
+  const handleOpenNewChatModal = useCallback(() => {
     setActivePanel('chat');
     setSidebarOpen(false);
     setCommandPaletteOpen(false);
@@ -385,7 +406,7 @@ const Home = () => {
     setEditingMessageId(null);
     setEditingMessageContent('');
     clearAttachments();
-  };
+  }, [clearAttachments]);
 
   const handleCloseNewChatModal = () => {
     if (isCreatingChat) return;
@@ -463,12 +484,10 @@ const Home = () => {
     setIsLoggingOut(true);
 
     try {
-      await logoutUser();
-      setCurrentUser(null);
+      await signOut({ redirectUrl: '/login' });
       dispatch(resetChatState());
       setMessages([]);
       setActivePanel('chat');
-      navigate('/login');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -480,13 +499,11 @@ const Home = () => {
     setIsLoggingOut(true);
 
     try {
-      await logoutUser();
-      setCurrentUser(null);
+      await signOut({ redirectUrl: '/login' });
       dispatch(resetChatState());
       setMessages([]);
       setActivePanel('chat');
-      toast.success('Session cleared. Sign in with a different Gmail/email account.');
-      navigate('/login');
+      toast.success('Signed out. Choose another Google, GitHub, phone, or email account to continue.');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -546,22 +563,15 @@ const Home = () => {
     });
   };
 
-  const handleQuickAction = (value) => {
+  const handleQuickAction = useCallback((value) => {
     setActivePanel('chat');
     setSidebarOpen(false);
     dispatch(setInput(value));
     focusComposerInput();
-  };
+  }, [dispatch]);
 
-  const handleToolAction = async (action) => {
+  const handleToolAction = useCallback(async (action) => {
     const currentInput = input.trim();
-
-    if (action === 'search') {
-      setActivePanel('chat');
-      dispatch(setInput(ensurePrefixedPrompt(currentInput, 'Search the web for: ')));
-      focusComposerInput();
-      return;
-    }
 
     if (action === 'image') {
       setActivePanel('chat');
@@ -680,7 +690,16 @@ const Home = () => {
         setIsVoiceListening(false);
       }
     }
-  };
+  }, [dispatch, input, isVoiceListening]);
+
+  const handleStopGeneration = useCallback(() => {
+    if (requestAbortRef.current) {
+      requestAbortRef.current.abort();
+      requestAbortRef.current = null;
+      dispatch(sendingFinished());
+      toast.success('Generation stopped.');
+    }
+  }, [dispatch]);
 
   const commandPaletteCommands = useMemo(
     () => [
@@ -703,14 +722,6 @@ const Home = () => {
           setSidebarOpen(false);
           focusComposerInput();
         },
-      },
-      {
-        id: 'search-web',
-        label: 'Search the web',
-        description: 'Prefill the composer with a web search instruction.',
-        shortcut: 'S',
-        keywords: ['search', 'web', 'browse'],
-        onSelect: () => handleToolAction('search'),
       },
       {
         id: 'image-prompt',
@@ -757,6 +768,7 @@ const Home = () => {
     if (isSending) return;
 
     dispatch(sendingStarted());
+    requestAbortRef.current = new AbortController();
 
     const previousMessages = messages;
     const currentEditingId = editingMessageId;
@@ -813,6 +825,8 @@ const Home = () => {
         const response = await updateChatMessage({
           messageId: currentEditingId,
           content: payloadMessage,
+          model: selectedModel,
+          signal: requestAbortRef.current.signal,
         });
 
         if (!response.success || !response.reply?.trim()) {
@@ -823,6 +837,9 @@ const Home = () => {
           dispatch(upsertChat(response.chat));
         }
 
+        setLastUsage(response.usage || null);
+        setSelectedModel(response.model || selectedModel);
+
         await syncMessagesForChat(activeChatId, true);
         clearAttachments();
         toast.success('Prompt updated and response refreshed.');
@@ -830,7 +847,7 @@ const Home = () => {
       }
 
       if (!resolvedChatId || !resolvedChat) {
-        const createdChatResponse = await createChat(buildAutoChatTitle(displayedMessage));
+        const createdChatResponse = await createChat(buildAutoChatTitle(displayedMessage), selectedModel);
 
         if (!createdChatResponse?.chat?._id) {
           throw new Error(FALLBACK_REPLY);
@@ -844,7 +861,9 @@ const Home = () => {
       const response = await sendChatMessage({
         chatId: resolvedChatId,
         message: payloadMessage,
+        model: selectedModel,
         userId: resolvedChat.userId || resolvedChat.user,
+        signal: requestAbortRef.current.signal,
       });
 
       if (!response.success || !response.reply?.trim()) {
@@ -854,6 +873,9 @@ const Home = () => {
       if (response.chat) {
         dispatch(upsertChat(response.chat));
       }
+
+      setLastUsage(response.usage || null);
+      setSelectedModel(response.model || selectedModel);
 
       await syncMessagesForChat(resolvedChatId, true);
       clearAttachments();
@@ -884,6 +906,7 @@ const Home = () => {
 
       toast.error(message);
     } finally {
+      requestAbortRef.current = null;
       dispatch(sendingFinished());
     }
   };
@@ -902,12 +925,15 @@ const Home = () => {
     setActivePanel('chat');
     dispatch(sendingStarted());
     setMessages((prev) => prev.filter((message) => message.id !== messageId));
+    requestAbortRef.current = new AbortController();
 
     try {
       const response = await sendChatMessage({
         chatId: activeChatId,
         message: sourceUserMessage.rawContent || sourceUserMessage.content,
+        model: selectedModel,
         userId: activeChat?.userId || activeChat?.user,
+        signal: requestAbortRef.current.signal,
       });
 
       if (!response.success || !response.reply?.trim()) {
@@ -917,6 +943,9 @@ const Home = () => {
       if (response.chat) {
         dispatch(upsertChat(response.chat));
       }
+
+      setLastUsage(response.usage || null);
+      setSelectedModel(response.model || selectedModel);
 
       await syncMessagesForChat(activeChatId, true);
       toast.success('Response retried.');
@@ -936,6 +965,7 @@ const Home = () => {
       ]);
       toast.error(message);
     } finally {
+      requestAbortRef.current = null;
       dispatch(sendingFinished());
     }
   };
@@ -955,11 +985,14 @@ const Home = () => {
     setActivePanel('chat');
     dispatch(sendingStarted());
     setMessages(messages.slice(0, messageIndex));
+    requestAbortRef.current = new AbortController();
 
     try {
       const response = await updateChatMessage({
         messageId: sourceUserMessage.id,
         content: sourceUserMessage.rawContent || sourceUserMessage.content,
+        model: selectedModel,
+        signal: requestAbortRef.current.signal,
       });
 
       if (!response.success || !response.reply?.trim()) {
@@ -970,12 +1003,16 @@ const Home = () => {
         dispatch(upsertChat(response.chat));
       }
 
+      setLastUsage(response.usage || null);
+      setSelectedModel(response.model || selectedModel);
+
       await syncMessagesForChat(activeChatId, true);
       toast.success('Fresh response generated.');
     } catch (error) {
       setMessages(previousMessages);
       toast.error(getErrorMessage(error));
     } finally {
+      requestAbortRef.current = null;
       dispatch(sendingFinished());
     }
   };
@@ -1051,6 +1088,25 @@ const Home = () => {
             <h1>{activePanel === 'settings' ? 'Settings' : activeChat?.title || "What's on your mind today?"}</h1>
           </div>
           <div className="chat-topbar-actions">
+            <div className="hidden md:flex">
+              <AuthUserButton
+                appearance={{
+                  ...clerkAppearance,
+                  elements: {
+                    ...clerkAppearance.elements,
+                    avatarBox:
+                      'h-11 w-11 rounded-full ring-2 ring-cyan-400/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]',
+                    userButtonPopoverCard:
+                      'border border-white/10 bg-slate-950/95 text-slate-100 shadow-[0_24px_70px_rgba(2,8,23,0.58)]',
+                    userButtonPopoverActionButton:
+                      'text-slate-200 hover:bg-white/6 transition-colors duration-200',
+                    userButtonPopoverActionButtonText: 'text-slate-200',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+                afterSignOutUrl="/login"
+              />
+            </div>
             <button
               type="button"
               className="chat-topbar-btn chat-topbar-btn-secondary"
@@ -1075,6 +1131,9 @@ const Home = () => {
               onLogout={handleLogout}
               onSwitchAccount={handleSwitchAccount}
               isLoggingOut={isLoggingOut}
+              selectedModel={selectedModel}
+              providerLabel={authProviderLabel}
+              lastUsage={lastUsage}
             />
           ) : isBootstrapping ? (
             <div className="chat-empty-state">
@@ -1120,6 +1179,10 @@ const Home = () => {
                   isEditing={Boolean(editingMessageId)}
                   editingMessageContent={editingMessageContent}
                   onCancelEdit={handleCancelEdit}
+                  onStop={handleStopGeneration}
+                  selectedModel={selectedModel}
+                  onSelectModel={setSelectedModel}
+                  lastUsage={lastUsage}
                   compact={false}
                 />
               </div>
@@ -1153,6 +1216,10 @@ const Home = () => {
               isEditing={Boolean(editingMessageId)}
               editingMessageContent={editingMessageContent}
               onCancelEdit={handleCancelEdit}
+              onStop={handleStopGeneration}
+              selectedModel={selectedModel}
+              onSelectModel={setSelectedModel}
+              lastUsage={lastUsage}
               compact
             />
           </div>

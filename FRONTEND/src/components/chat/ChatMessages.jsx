@@ -315,6 +315,15 @@ const ChatMessages = ({
               <span className="msg-role">{message.type === 'user' ? 'You' : 'Mate.ai'}</span>
               <span className="msg-time">{formatMessageTime(message.createdAt)}</span>
             </div>
+            {message.type === 'ai' && (message.model || message.usage?.total_tokens) && (
+              <div className="msg-head">
+                <span className="msg-time">
+                  {[message.model, message.usage?.total_tokens ? `${message.usage.total_tokens} tokens` : '']
+                    .filter(Boolean)
+                    .join(' - ')}
+                </span>
+              </div>
+            )}
 
             <div className="msg-bubble">
               <MessageBody message={message} onCopy={handleCopy} />

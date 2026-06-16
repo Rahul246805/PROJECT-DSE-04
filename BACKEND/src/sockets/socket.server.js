@@ -66,7 +66,7 @@ function initSocketServer(httpServer) {
       try {
         console.log("Incoming:", data);
 
-        const { chat, content } = data;
+        const { chat, content, model } = data;
 
         if (!content || !content.trim()) {
           return socket.emit("ai-response", {
@@ -77,7 +77,10 @@ function initSocketServer(httpServer) {
 
         socket.emit("ai-typing", { chat, status: true });
 
-        const reply = await aiService.generateResponse(content);
+        const result = await aiService.generateResponse([
+          { role: "user", content: String(content || "").trim() },
+        ], { model });
+        const reply = typeof result === "string" ? result : result?.reply;
 
         console.log("AI Reply:", reply);
 
@@ -86,6 +89,8 @@ function initSocketServer(httpServer) {
         socket.emit("ai-response", {
           chat,
           content: reply,
+          model: result?.model || model,
+          usage: result?.usage || null,
         });
       } catch (error) {
         console.error("AI ERROR:", error.message);

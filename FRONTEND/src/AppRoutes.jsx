@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import AuthLoadingScreen from './components/auth/AuthLoadingScreen.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PublicOnlyRoute from './components/PublicOnlyRoute.jsx';
 
@@ -12,11 +13,10 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 const fallback = (
-  <div className="flex min-h-screen items-center justify-center">
-    <div className="glass-card rounded-[28px] px-6 py-5 text-sm text-slate-200">
-      Loading Mate.ai...
-    </div>
-  </div>
+  <AuthLoadingScreen
+    title="Loading Mate.AI..."
+    description="Syncing routes and preparing your intelligent workspace."
+  />
 );
 
 const AppRoutes = () => {

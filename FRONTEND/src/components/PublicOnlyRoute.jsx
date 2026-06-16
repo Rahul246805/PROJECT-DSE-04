@@ -1,46 +1,21 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { clearAuthToken, fetchCurrentUser, isAuthenticated } from './chat/aiClient.js';
+import AuthLoadingScreen from './auth/AuthLoadingScreen.jsx';
+import { useAppAuth } from '../lib/auth.jsx';
 
 const PublicOnlyRoute = ({ children }) => {
-  const [status, setStatus] = React.useState(isAuthenticated() ? 'checking' : 'public');
+  const { isLoaded, isSignedIn } = useAppAuth();
 
-  React.useEffect(() => {
-    let ignore = false;
-
-    async function verify() {
-      if (!isAuthenticated()) {
-        if (!ignore) setStatus('public');
-        return;
-      }
-
-      try {
-        await fetchCurrentUser();
-        if (!ignore) setStatus('authenticated');
-      } catch {
-        clearAuthToken();
-        if (!ignore) setStatus('public');
-      }
-    }
-
-    verify();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
-  if (status === 'checking') {
+  if (!isLoaded) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="glass-card rounded-[28px] px-6 py-5 text-sm text-slate-200">
-          Preparing Mate.ai...
-        </div>
-      </div>
+      <AuthLoadingScreen
+        title="Preparing Mate.AI..."
+        description="Checking for an active session so we can route you correctly."
+      />
     );
   }
 
-  if (status === 'authenticated') {
+  if (isSignedIn) {
     return <Navigate to="/app" replace />;
   }
 

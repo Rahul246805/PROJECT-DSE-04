@@ -1,33 +1,33 @@
 @import url("https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.css");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", sans-serif;
-  --font-display: "Geist Sans", "Inter", sans-serif;
+  --font-sans: "Manrope", sans-serif;
+  --font-display: "Geist Sans", "Manrope", sans-serif;
   --shadow-glass: 0 24px 80px rgba(1, 6, 10, 0.36);
 }
 
 @layer base {
   :root {
     color-scheme: dark;
-    --app-bg: #060b11;
-    --app-panel: rgba(8, 13, 19, 0.84);
-    --app-card: rgba(10, 16, 24, 0.88);
-    --app-card-strong: rgba(12, 20, 30, 0.94);
-    --app-border: #27272a;
-    --app-text: #f4f4f5;
-    --app-text-soft: #b4b4b8;
-    --app-text-muted: #71717a;
-    --app-accent: #8fa39d;
-    --app-accent-strong: #667a74;
-    --app-accent-soft: rgba(143, 163, 157, 0.14);
-    --app-focus: rgba(168, 85, 247, 0.28);
+    --app-bg: #040816;
+    --app-panel: rgba(8, 13, 31, 0.84);
+    --app-card: rgba(8, 14, 29, 0.9);
+    --app-card-strong: rgba(11, 19, 38, 0.95);
+    --app-border: #1f2b4a;
+    --app-text: #f8fbff;
+    --app-text-soft: #c8d2f2;
+    --app-text-muted: #8090bf;
+    --app-accent: #22d3ee;
+    --app-accent-strong: #8b5cf6;
+    --app-accent-soft: rgba(34, 211, 238, 0.14);
+    --app-focus: rgba(34, 211, 238, 0.2);
     --app-gradient:
-      radial-gradient(circle at 18% 18%, rgba(76, 96, 91, 0.16), transparent 30%),
-      radial-gradient(circle at 78% 14%, rgba(47, 60, 68, 0.18), transparent 24%),
-      radial-gradient(circle at 50% 100%, rgba(88, 108, 102, 0.08), transparent 24%),
-      linear-gradient(180deg, #070b10 0%, #04070c 100%);
+      radial-gradient(circle at 10% 10%, rgba(34, 211, 238, 0.16), transparent 26%),
+      radial-gradient(circle at 88% 12%, rgba(139, 92, 246, 0.18), transparent 28%),
+      radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.1), transparent 24%),
+      linear-gradient(180deg, #050916 0%, #02040b 100%);
   }
 
   :root.light {
@@ -40,15 +40,15 @@
     --app-text: #18181b;
     --app-text-soft: #52525b;
     --app-text-muted: #71717a;
-    --app-accent: #6b827b;
-    --app-accent-strong: #546964;
-    --app-accent-soft: rgba(107, 130, 123, 0.12);
-    --app-focus: rgba(168, 85, 247, 0.2);
+    --app-accent: #0f9fb8;
+    --app-accent-strong: #7450da;
+    --app-accent-soft: rgba(15, 159, 184, 0.12);
+    --app-focus: rgba(15, 159, 184, 0.16);
     --app-gradient:
-      radial-gradient(circle at 20% 20%, rgba(107, 130, 123, 0.1), transparent 32%),
-      radial-gradient(circle at 80% 15%, rgba(84, 105, 100, 0.08), transparent 24%),
-      radial-gradient(circle at 50% 100%, rgba(107, 130, 123, 0.05), transparent 22%),
-      linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%);
+      radial-gradient(circle at 20% 20%, rgba(120, 151, 140, 0.12), transparent 32%),
+      radial-gradient(circle at 80% 15%, rgba(84, 105, 100, 0.09), transparent 24%),
+      radial-gradient(circle at 50% 100%, rgba(107, 130, 123, 0.06), transparent 22%),
+      linear-gradient(180deg, #f7f8f7 0%, #eef2ef 100%);
   }
 
   * {
@@ -64,6 +64,7 @@
     @apply m-0 min-h-screen font-sans antialiased;
     background: var(--app-gradient);
     color: var(--app-text);
+    background-attachment: fixed;
   }
 
   a {
@@ -82,8 +83,8 @@
   }
 
   ::selection {
-    background: rgba(168, 85, 247, 0.28);
-    color: white;
+    background: rgba(152, 184, 171, 0.28);
+    color: var(--app-text);
   }
 
   #root {
@@ -101,12 +102,25 @@
       linear-gradient(180deg, rgba(255, 255, 255, 0.08), #27272a 48%, rgba(255, 255, 255, 0.04)) border-box;
     box-shadow: var(--shadow-glass);
     backdrop-filter: blur(24px);
+    overflow: hidden;
   }
 
   .glass-panel {
     background:
       linear-gradient(var(--app-panel), var(--app-panel)) padding-box,
       linear-gradient(180deg, rgba(255, 255, 255, 0.08), #27272a 48%, rgba(255, 255, 255, 0.04)) border-box;
+  }
+
+  .glass-card::before,
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 36%),
+      radial-gradient(circle at top right, rgba(34, 211, 238, 0.09), transparent 28%),
+      radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.08), transparent 24%);
   }
 
   .section-shell {
@@ -130,28 +144,29 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium transition duration-200;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #09090b;
-    box-shadow: 0 14px 34px rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%);
+    color: #04111e;
+    box-shadow: 0 18px 36px rgba(34, 211, 238, 0.24);
   }
 
   .btn-primary:hover {
     transform: translateY(-1px);
-    filter: brightness(0.98);
+    filter: brightness(1.04);
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium transition duration-200;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--app-text);
   }
 
   .btn-secondary:hover {
     transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.22);
   }
 
   .field-shell {
@@ -176,14 +191,52 @@
   }
 
   .field-input:focus-visible {
-    border-color: rgba(168, 85, 247, 0.46);
+    border-color: rgba(34, 211, 238, 0.42);
     box-shadow: 0 0 0 4px var(--app-focus);
   }
 
   .auth-backdrop {
     background:
-      radial-gradient(circle at top left, rgba(98, 116, 110, 0.16), transparent 34%),
-      radial-gradient(circle at bottom right, rgba(48, 61, 66, 0.16), transparent 28%),
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.14), transparent 32%),
+      radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.16), transparent 30%),
+      linear-gradient(120deg, rgba(255, 255, 255, 0.02), transparent 35%),
       var(--app-gradient);
+  }
+
+  .auth-card-shell::after {
+    content: "";
+    position: absolute;
+    inset: auto 18px 18px 18px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.7), rgba(139, 92, 246, 0.7), transparent);
+    opacity: 0.9;
+  }
+
+  .auth-orbit-loader {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid rgba(34, 211, 238, 0.18);
+    border-top-color: rgba(34, 211, 238, 0.95);
+    border-right-color: rgba(139, 92, 246, 0.9);
+    animation: auth-orbit-spin 0.95s linear infinite;
+    box-shadow:
+      0 0 18px rgba(34, 211, 238, 0.25),
+      inset 0 0 18px rgba(139, 92, 246, 0.16);
+  }
+
+  .auth-orbit-loader::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.9), rgba(34, 211, 238, 0.45));
+  }
+}
+
+@keyframes auth-orbit-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

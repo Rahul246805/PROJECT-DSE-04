@@ -10,7 +10,7 @@ const QUICK_ACTIONS = [
 ];
 
 const TOOL_ACTIONS = [
-  { label: 'Search', action: 'search' },
+  { label: 'Image prompt', action: 'image' },
 ];
 
 const ChatComposer = ({
@@ -27,6 +27,10 @@ const ChatComposer = ({
   isEditing = false,
   editingMessageContent = '',
   onCancelEdit,
+  onStop,
+  selectedModel = 'llama-3.3-70b-versatile',
+  onSelectModel,
+  lastUsage = null,
   compact = false,
 }) => {
   const textareaRef = useRef(null);
@@ -152,6 +156,16 @@ const ChatComposer = ({
               ))}
             </div>
             <div className="composer-tool-group composer-tool-group-secondary">
+              <select
+                className="composer-tool-pill"
+                aria-label="Select AI model"
+                value={selectedModel}
+                onChange={(event) => onSelectModel?.(event.target.value)}
+              >
+                <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 70B</option>
+                <option value="gemma2-9b-it">Gemma 2 9B</option>
+              </select>
               <button
                 type="button"
                 className="composer-tool-icon"
@@ -160,6 +174,16 @@ const ChatComposer = ({
               >
                 {isVoiceListening ? 'Listening' : 'Mic'}
               </button>
+              {isSending && (
+                <button
+                  type="button"
+                  className="composer-tool-icon"
+                  aria-label="Stop generation"
+                  onClick={onStop}
+                >
+                  Stop
+                </button>
+              )}
             </div>
           </div>
 
@@ -176,7 +200,11 @@ const ChatComposer = ({
             {isEditing && editingMessageContent ? (
               <span className="composer-meta-note">Original prompt loaded for editing</span>
             ) : (
-              <span className="composer-meta-note">Supports files, pasted content, search and voice</span>
+              <span className="composer-meta-note">
+                {lastUsage?.total_tokens
+                  ? `Last response used ${lastUsage.total_tokens} tokens`
+                  : 'Supports files, pasted content, image prompts, and voice'}
+              </span>
             )}
           </div>
         </div>

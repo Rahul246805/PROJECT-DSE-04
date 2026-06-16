@@ -24,7 +24,13 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getErrorMessage, submitContactForm } from '../components/chat/aiClient.js';
+import {
+  fetchApiHealth,
+  getErrorMessage,
+  submitContactForm,
+} from '../components/chat/aiClient.js';
+import { clerkAppearance } from '../lib/clerk.js';
+import { AuthSignedIn, AuthSignedOut, AuthUserButton, useAppAuth } from '../lib/auth.jsx';
 import { applyTheme, getStoredTheme } from '../lib/theme.js';
 import { validateEmail, validateName } from '../lib/validation.js';
 
@@ -96,11 +102,24 @@ const quickStats = [
   ['Responsive UX', 'Optimized for desktop, tablet, and mobile'],
 ];
 
+const trustHighlights = [
+  'Production-style auth and recovery flows',
+  'Persistent chat sessions backed by MongoDB',
+  'Designer-led UI with realistic product framing',
+];
+
+const experienceMetrics = [
+  { value: '3', label: 'entry paths', detail: 'Sign up, sign in, or open a guest demo in one click.' },
+  { value: '100%', label: 'responsive', detail: 'Layouts and messaging are tuned across desktop, tablet, and mobile.' },
+  { value: '1', label: 'shared system', detail: 'Public site, auth, and app now speak the same visual language.' },
+];
+
 const socialLinks = {
   linkedin: import.meta.env.VITE_LINKEDIN_URL || 'https://www.linkedin.com/',
 };
 
 const Portfolio = () => {
+  const { isSignedIn } = useAppAuth();
   const heroRef = React.useRef(null);
   const previewRef = React.useRef(null);
   const statGridRef = React.useRef(null);
@@ -115,6 +134,10 @@ const Portfolio = () => {
   const [errors, setErrors] = React.useState({});
   const [submitting, setSubmitting] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState('');
+  const [healthStatus, setHealthStatus] = React.useState({
+    label: 'Checking live API',
+    detail: 'Verifying backend availability and production routing.',
+  });
 
   React.useEffect(() => {
     document.title = 'Mate.ai | AI Chat Workspace for Planning, Writing and Debugging';
@@ -124,6 +147,36 @@ const Portfolio = () => {
     applyTheme(theme);
     localStorage.setItem('mate_theme', theme);
   }, [theme]);
+
+  React.useEffect(() => {
+    let ignore = false;
+
+    async function loadHealth() {
+      try {
+        const response = await fetchApiHealth();
+
+        if (!ignore) {
+          setHealthStatus({
+            label: response?.success ? 'Backend online' : 'Backend status unknown',
+            detail: response?.message || 'API responded successfully.',
+          });
+        }
+      } catch (error) {
+        if (!ignore) {
+          setHealthStatus({
+            label: 'Backend unavailable',
+            detail: getErrorMessage(error),
+          });
+        }
+      }
+    }
+
+    loadHealth();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   React.useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -261,12 +314,36 @@ const Portfolio = () => {
             >
               {theme === 'dark' ? <SunMedium size={18} /> : <MoonStar size={18} />}
             </button>
-            <Link to="/login" className="btn-secondary">
-              Login
-            </Link>
-            <Link to="/register" className="btn-primary">
-              Sign up
-            </Link>
+            <AuthSignedOut>
+              <Link to="/login" className="btn-secondary">
+                Sign in
+              </Link>
+              <Link to="/register" className="btn-primary">
+                Sign up
+              </Link>
+            </AuthSignedOut>
+            <AuthSignedIn>
+              <Link to="/app" className="btn-secondary">
+                Open dashboard
+              </Link>
+              <AuthUserButton
+                appearance={{
+                  ...clerkAppearance,
+                  elements: {
+                    ...clerkAppearance.elements,
+                    avatarBox:
+                      'h-11 w-11 rounded-full ring-2 ring-cyan-400/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]',
+                    userButtonPopoverCard:
+                      'border border-white/10 bg-slate-950/95 text-slate-100 shadow-[0_24px_70px_rgba(2,8,23,0.58)]',
+                    userButtonPopoverActionButton:
+                      'text-slate-200 hover:bg-white/6 transition-colors duration-200',
+                    userButtonPopoverActionButtonText: 'text-slate-200',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+                afterSignOutUrl="/"
+              />
+            </AuthSignedIn>
           </div>
 
           <button
@@ -291,12 +368,19 @@ const Portfolio = () => {
                 >
                   {theme === 'dark' ? <SunMedium size={18} /> : <MoonStar size={18} />}
                 </button>
-                <Link className="btn-secondary flex-1 justify-center" to="/login">
-                  Login
-                </Link>
-                <Link className="btn-primary flex-1 justify-center" to="/register">
-                  Sign up
-                </Link>
+                <AuthSignedOut>
+                  <Link className="btn-secondary flex-1 justify-center" to="/login">
+                    Sign in
+                  </Link>
+                  <Link className="btn-primary flex-1 justify-center" to="/register">
+                    Sign up
+                  </Link>
+                </AuthSignedOut>
+                <AuthSignedIn>
+                  <Link className="btn-primary flex-1 justify-center" to="/app">
+                    Open dashboard
+                  </Link>
+                </AuthSignedIn>
               </div>
               <div className="flex flex-col gap-3">
                 {navItems.map(([id, label]) => (
@@ -317,40 +401,72 @@ const Portfolio = () => {
               <div className="space-y-5">
                 <span data-gsap="hero-copy" className="section-kicker">Mate.ai workspace</span>
                 <h1 data-gsap="hero-copy" className="max-w-3xl font-display text-5xl font-semibold leading-[0.95] sm:text-6xl lg:text-7xl">
-                  Smarter conversations. Quieter design. Better focus.
+                  Smarter conversations, designed like a real product.
                 </h1>
                 <p data-gsap="hero-copy" className="max-w-2xl text-lg leading-8" style={{ color: 'var(--app-text-soft)' }}>
-                  Mate.ai is an AI chatbot workspace for support, engagement, and research. The portfolio follows the same calm dark interface style as the product and guides visitors directly into working login and signup flows.
+                  Mate.ai is an AI chat workspace for support, research, and daily execution. The website now feels less like a demo template and more like a professional SaaS product with clear entry points, better hierarchy, and realistic product framing.
                 </p>
               </div>
 
               <div data-gsap="hero-copy" className="flex flex-wrap gap-4">
-                <Link to="/register" className="btn-primary">
-                  Sign up
-                  <ArrowRight size={16} />
-                </Link>
-                <Link to="/login" className="btn-secondary">
-                  Login
-                </Link>
+                {isSignedIn ? (
+                  <Link to="/app" className="btn-primary">
+                    Open dashboard
+                    <ArrowRight size={16} />
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/register" className="btn-primary">
+                      Sign up
+                      <ArrowRight size={16} />
+                    </Link>
+                    <Link to="/login" className="btn-secondary">
+                      Sign in
+                    </Link>
+                  </>
+                )}
               </div>
 
               <div data-gsap="hero-copy" className="glass-card rounded-[28px] p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
-                      Access Mate.ai
+                      Product access
                     </p>
-                    <h2 className="mt-2 text-xl font-semibold">Create an account or continue to your workspace.</h2>
+                    <h2 className="mt-2 text-xl font-semibold">Move from discovery to a working workspace in seconds.</h2>
+                    <p className="mt-3 text-sm leading-6" style={{ color: 'var(--app-text-muted)' }}>
+                      {healthStatus.label}: {healthStatus.detail}
+                    </p>
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row">
-                    <Link to="/login" className="btn-secondary justify-center">
-                      Login
-                    </Link>
-                    <Link to="/register" className="btn-primary justify-center">
-                      Sign up
-                    </Link>
+                    {isSignedIn ? (
+                      <Link to="/app" className="btn-primary justify-center">
+                        Open dashboard
+                      </Link>
+                    ) : (
+                      <>
+                        <Link to="/login" className="btn-secondary justify-center">
+                          Sign in
+                        </Link>
+                        <Link to="/register" className="btn-primary justify-center">
+                          Sign up
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
+              </div>
+
+              <div data-gsap="hero-copy" className="flex flex-wrap gap-3">
+                {trustHighlights.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/10 bg-white/4 px-4 py-2 text-sm"
+                    style={{ color: 'var(--app-text-soft)' }}
+                  >
+                    {item}
+                  </span>
+                ))}
               </div>
 
               <div ref={statGridRef} className="grid gap-4 md:grid-cols-3">
@@ -376,11 +492,11 @@ const Portfolio = () => {
                     </div>
                     <div>
                       <p className="font-semibold">Mate.ai demo</p>
-                      <p className="text-sm text-[var(--app-accent)]">Online</p>
+                      <p className="text-sm text-[var(--app-accent)]">Workspace live</p>
                     </div>
                   </div>
                   <div className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em]" style={{ color: 'var(--app-text-muted)' }}>
-                    Live preview
+                    Product preview
                   </div>
                 </div>
 
@@ -407,6 +523,18 @@ const Portfolio = () => {
                     </span>
                   </div>
                 </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {experienceMetrics.map((item) => (
+                    <div key={item.label} className="rounded-[18px] border border-white/10 bg-white/5 p-4">
+                      <p className="font-display text-2xl font-semibold text-[var(--app-accent)]">{item.value}</p>
+                      <p className="mt-1 text-sm font-medium">{item.label}</p>
+                      <p className="mt-2 text-xs leading-5" style={{ color: 'var(--app-text-muted)' }}>
+                        {item.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </MotionDiv>
           </div>
@@ -416,15 +544,15 @@ const Portfolio = () => {
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="glass-card rounded-[24px] p-8">
               <span className="section-kicker">About Mate.ai</span>
-              <h2 className="mt-5 font-display text-3xl font-semibold">Purpose-built for better conversations.</h2>
+              <h2 className="mt-5 font-display text-3xl font-semibold">Purpose-built for better conversations and sharper execution.</h2>
               <p className="mt-4 text-base leading-8" style={{ color: 'var(--app-text-soft)' }}>
-                Mate.ai is an AI chatbot product designed for smart, responsive conversations. It helps users automate support, improve engagement, and create a clean interaction layer between people and product knowledge.
+                Mate.ai is an AI chatbot product designed for smart, responsive conversations. It helps users automate support, improve engagement, and create a cleaner interaction layer between people, tasks, and product knowledge.
               </p>
             </div>
             <div className="glass-card rounded-[24px] p-8">
               <h3 className="font-display text-2xl font-semibold">Developer role</h3>
               <p className="mt-4 text-base leading-8" style={{ color: 'var(--app-text-soft)' }}>
-                I led the full-stack implementation across product design, frontend architecture, backend APIs, MongoDB models, chat persistence, and JWT authentication. This upgrade also introduced password recovery, production-safe configuration, better error handling, and deployment readiness.
+                This upgrade strengthens the full-stack implementation across product design, frontend architecture, backend APIs, MongoDB models, chat persistence, and JWT authentication. It also improves password recovery, production-safe configuration, error handling, and overall product presentation.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {[
@@ -447,10 +575,10 @@ const Portfolio = () => {
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="section-kicker">Features</span>
-              <h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">Everything expected from an industry-level AI chatbot portfolio.</h2>
+              <h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">Everything expected from a polished AI product site.</h2>
             </div>
             <p className="max-w-xl text-base leading-7" style={{ color: 'var(--app-text-soft)' }}>
-              Product storytelling, live workspace access, secure auth flows, and scalable architecture are presented in one cohesive experience.
+              Product storytelling, live workspace access, secure auth flows, and scalable architecture now read as one cohesive experience instead of disconnected screens.
             </p>
           </div>
 
@@ -674,12 +802,20 @@ const Portfolio = () => {
               <Linkedin size={16} />
               LinkedIn
             </a>
-            <Link to="/login" className="btn-secondary">
-              Login
-            </Link>
-            <Link to="/register" className="btn-primary">
-              Sign up
-            </Link>
+            {isSignedIn ? (
+              <Link to="/app" className="btn-primary">
+                Open dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="btn-secondary">
+                  Sign in
+                </Link>
+                <Link to="/register" className="btn-primary">
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </footer>

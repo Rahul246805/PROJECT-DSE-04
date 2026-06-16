@@ -1,97 +1,94 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import AuthLayout from '../components/AuthLayout.jsx';
-import { forgotPassword, getErrorMessage } from '../components/chat/aiClient.js';
-import { validateEmail } from '../lib/validation.js';
+import AuthShell from '../components/auth/AuthShell.jsx';
+import { isClerkEnabled, isFirebaseEnabled, useAppAuth } from '../lib/auth.jsx';
 
 const ForgotPassword = () => {
+  const { requestPasswordReset } = useAppAuth();
   const [email, setEmail] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [status, setStatus] = React.useState(null);
-  const [submitting, setSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [successMessage, setSuccessMessage] = React.useState('');
+  const clerkMode = isClerkEnabled();
+  const firebaseMode = isFirebaseEnabled();
 
   React.useEffect(() => {
-    document.title = 'Mate.ai | Forgot password';
+    document.title = 'Mate.AI | Recover Access';
   }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const emailError = validateEmail(email);
 
-    if (emailError) {
-      setError(emailError);
+    if (!email.trim()) {
+      toast.error('Email is required.');
       return;
     }
 
-    setSubmitting(true);
-    setError('');
-    setStatus(null);
-
     try {
-      const response = await forgotPassword({ email: email.trim() });
-      setStatus(response);
-      toast.success('Reset instructions sent.');
-    } catch (requestError) {
-      const message = getErrorMessage(requestError);
-      setError(message);
-      toast.error(message);
+      setIsSubmitting(true);
+      const response = await requestPasswordReset({ email: email.trim() });
+      setSuccessMessage(response.message || 'If that account exists, a reset link has been sent.');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || 'Unable to send reset link.');
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Reset your password"
-      subtitle="Enter your email address and Mate.ai will generate a secure password reset link."
-      badge="Account recovery"
-      points={[
-        'Token-based reset links with expiration',
-        'Backend email delivery with development fallback',
-        'No account details leaked in the UI',
-      ]}
+    <AuthShell
+      title="Recover your Mate.AI account"
+      subtitle={clerkMode
+        ? 'Password recovery is handled inside Clerk’s secure sign-in flow so users can reset credentials without leaving the authentication system.'
+        : firebaseMode
+          ? 'Enter your email address and Firebase will send a password reset link for your Mate.AI sign-in.'
+        : 'Enter your email address and the backend will generate a reset link for your local Mate.AI account.'}
+      mode="sign-in"
     >
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-        <div className="field-shell">
-          <label className="field-label" htmlFor="forgot-email">
-            Email
-          </label>
-          <input
-            id="forgot-email"
-            type="email"
-            className="field-input"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
-          />
-          {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+      {clerkMode ? (
+        <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,15,30,0.92),rgba(5,10,20,0.92))] p-6">
+          <p className="text-sm uppercase tracking-[0.24em] text-cyan-200">Forgot password</p>
+          <h2 className="mt-3 font-display text-2xl font-semibold text-white">Use the built-in Clerk recovery flow</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-400">
+            From the sign-in page, choose email/password login and click the password recovery link.
+            Clerk will handle the reset challenge, verification, and secure session continuation.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link to="/login" className="btn-primary justify-center">
+              Go to sign in
+            </Link>
+            <Link to="/register" className="btn-secondary justify-center">
+              Create a new account
+            </Link>
+          </div>
         </div>
-
-        <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
-          {submitting ? 'Sending link...' : 'Send reset link'}
-        </button>
-      </form>
-
-      {status?.resetUrl ? (
-        <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
-          Development reset link:
-          <a className="ml-2 font-semibold underline" href={status.resetUrl}>
-            {status.resetUrl}
-          </a>
+      ) : (
+        <div className="rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,15,30,0.92),rgba(5,10,20,0.92))] p-6">
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-slate-100 outline-none"
+              placeholder="Email address"
+            />
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full justify-center">
+              {isSubmitting ? 'Sending reset link...' : 'Send reset link'}
+            </button>
+          </form>
+          {successMessage ? (
+            <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+              {successMessage}
+            </div>
+          ) : null}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link to="/login" className="btn-secondary justify-center">
+              Return to sign in
+            </Link>
+          </div>
         </div>
-      ) : null}
-
-      <div className="flex items-center justify-between text-sm" style={{ color: 'var(--app-text-muted)' }}>
-        <span>Remembered it?</span>
-        <Link to="/login" className="font-semibold text-violet-300 transition hover:text-violet-200">
-          Back to sign in
-        </Link>
-      </div>
-    </AuthLayout>
+      )}
+    </AuthShell>
   );
 };
 

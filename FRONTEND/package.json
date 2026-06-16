@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.61.6",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.15.2",
+    "firebase": "^12.13.0",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "lucide-react": "^0.542.0",

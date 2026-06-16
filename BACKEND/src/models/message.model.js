@@ -18,6 +18,16 @@ const messageSchema = new mongoose.Schema({
         type: String,
         enum: [ "user", "model", "system" ],
         default: "user"
+    },
+    model: {
+        type: String,
+        trim: true,
+        default: '',
+    },
+    usage: {
+        prompt_tokens: { type: Number, default: 0 },
+        completion_tokens: { type: Number, default: 0 },
+        total_tokens: { type: Number, default: 0 },
     }
 }, {
     timestamps: true

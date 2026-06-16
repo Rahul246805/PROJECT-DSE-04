@@ -47,7 +47,13 @@ const ChatSidebar = ({
   const displayName = currentUser?.fullName
     ? `${currentUser.fullName.firstName || ''} ${currentUser.fullName.lastName || ''}`.trim()
     : 'Mate.ai User';
-  const accountEmail = currentUser?.email || 'Guest session';
+  const accountEmail = currentUser?.email || currentUser?.phoneNumber || 'Secure session';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'M';
 
   return (
     <aside className={`chat-sidebar ${open ? 'open' : ''}`} aria-label="Conversation history">
@@ -56,8 +62,8 @@ const ChatSidebar = ({
           <div className="chat-sidebar-brand">
             <div className="chat-sidebar-logo">M</div>
             <div>
-              <strong>Mate.ai</strong>
-              <span>Your workspace</span>
+              <strong>Mate.AI</strong>
+              <span>Your AI workspace</span>
             </div>
           </div>
 
@@ -154,7 +160,11 @@ const ChatSidebar = ({
 
       <div className="chat-sidebar-bottom">
         <div className="chat-sidebar-profile">
-          <div className="chat-sidebar-avatar">M</div>
+          {currentUser?.avatarUrl ? (
+            <img className="chat-sidebar-avatar" src={currentUser.avatarUrl} alt={displayName} />
+          ) : (
+            <div className="chat-sidebar-avatar">{initials}</div>
+          )}
           <div className="chat-sidebar-profile-copy">
             <strong>{displayName}</strong>
             <span>{accountEmail}</span>
