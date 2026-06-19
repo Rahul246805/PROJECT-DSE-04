@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: mate-ai-portfolio
+    name: mate-ai-api
     runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install --prefix BACKEND
+    startCommand: npm start --prefix BACKEND
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -18,25 +19,9 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
-        sync: false
+        value: llama-3.3-70b-versatile
       - key: GROQ_MAX_TOKENS
-        sync: false
-      - key: CLERK_SECRET_KEY
-        sync: false
-      - key: VITE_CLERK_PUBLISHABLE_KEY
-        sync: false
-      - key: VITE_FIREBASE_API_KEY
-        sync: false
-      - key: VITE_FIREBASE_AUTH_DOMAIN
-        sync: false
-      - key: VITE_FIREBASE_PROJECT_ID
-        sync: false
-      - key: VITE_FIREBASE_STORAGE_BUCKET
-        sync: false
-      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
-        sync: false
-      - key: VITE_FIREBASE_APP_ID
-        sync: false
+        value: "700"
       - key: CONTACT_RECEIVER_EMAIL
         sync: false
       - key: MAIL_FROM

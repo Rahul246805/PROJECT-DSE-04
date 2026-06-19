@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const fs = require('fs');
 const helmet = require('helmet');
 const path = require('path');
 const { clerkMiddleware } = require('@clerk/express');
@@ -30,12 +31,17 @@ const normalizeOrigin = (value) => {
     return value.trim().replace(/\/$/, '');
 };
 
+const parseOriginList = (value) => String(value || '')
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
 const allowedOrigins = new Set(
     [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
-        process.env.FRONTEND_URL,
-        process.env.PUBLIC_APP_URL,
+        ...parseOriginList(process.env.FRONTEND_URL),
+        ...parseOriginList(process.env.PUBLIC_APP_URL),
         process.env.RENDER_EXTERNAL_URL,
     ]
         .map(normalizeOrigin)
@@ -71,10 +77,22 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/contact', contactRoutes);
 
-app.get('/api/health', (req, res) => {
+function sendHealthResponse(req, res) {
     res.status(200).json({
         success: true,
         message: 'Mate.ai API is healthy',
+        uptimeSeconds: Math.round(process.uptime()),
+        timestamp: new Date().toISOString(),
+    });
+}
+
+app.get('/api/health', sendHealthResponse);
+app.get('/health', sendHealthResponse);
+
+app.get(['/api/ready', '/ready'], (req, res) => {
+    res.status(200).json({
+        ready: true,
+        timestamp: new Date().toISOString(),
     });
 });
 
@@ -84,12 +102,25 @@ app.use(errorHandler);
 /* ================= FRONTEND SERVING ================= */
 
 const publicPath = path.join(__dirname, '../public');
+const indexPath = path.join(publicPath, 'index.html');
+const shouldServeFrontend = process.env.SERVE_FRONTEND === 'true';
+const hasFrontendBuild = shouldServeFrontend && fs.existsSync(indexPath);
 
-app.use(express.static(publicPath));
+if (hasFrontendBuild) {
+    app.use(express.static(publicPath));
+}
 
 // Express 5 requires named wildcards for SPA fallbacks.
 app.get('/{*any}', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    if (hasFrontendBuild) {
+        return res.sendFile(indexPath);
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: 'Mate.ai API is running',
+        frontend: 'Deploy the React app from FRONTEND on Vercel and set VITE_API_URL to this service /api URL.',
+    });
 });
 
 module.exports = app;

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   ClerkProvider,
@@ -20,7 +21,7 @@ import {
   resetPasswordWithToken,
   setAuthTokenGetter,
 } from '../components/chat/aiClient.js';
-import { clerkAppearance, CLERK_PATHS, mapClerkUserToProfile } from './clerk.js';
+import { CLERK_PATHS, mapClerkUserToProfile } from './clerk.js';
 import {
   firebaseEnabled,
   mapFirebaseUserToProfile,

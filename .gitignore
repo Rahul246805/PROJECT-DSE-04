@@ -1,0 +1,15 @@
+node_modules/
+BACKEND/node_modules/
+FRONTEND/node_modules/
+client/node_modules/
+server/node_modules/
+BACKEND/.env
+FRONTEND/.env
+BACKEND/public/
+FRONTEND/dist/
+client/dist/
+.env
+server/.env
+client/.env
+npm-debug.log*
+.DS_Store

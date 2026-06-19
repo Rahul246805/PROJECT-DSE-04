@@ -1,46 +1,18 @@
 # Mate.AI Backend
 
-Groq-powered chatbot backend for Mate.AI using:
+Express API for Mate.AI with MongoDB persistence, local JWT auth, guest sessions, and Groq-powered chat replies.
+
+## Stack
 
 - Node.js + Express
-- MongoDB
-- Clerk authentication
+- MongoDB + Mongoose
+- JSON Web Tokens
 - Groq SDK
-- Llama 3.3 70B
+- Socket.IO support
 
-## Folder structure
+Clerk integration files are retained for optional provider support, but production uses local JWT auth unless `CLERK_SECRET_KEY` is intentionally configured.
 
-```text
-src/
-  configs/
-    db.js
-  controllers/
-    auth.controller.js
-    chat.controller.js
-    contact.controller.js
-  middlewares/
-    auth.middleware.js
-    error.middleware.js
-  models/
-    chat.model.js
-    contact.model.js
-    message.model.js
-    user.model.js
-  routes/
-    auth.routes.js
-    chat.routes.js
-    contact.routes.js
-  services/
-    ai.service.js
-    clerk-user.service.js
-    llm.service.js
-    mail.service.js
-  sockets/
-    socket.server.js
-  app.js
-```
-
-## Environment setup
+## Environment
 
 Create `BACKEND/.env` from `BACKEND/.env.example`.
 
@@ -48,74 +20,45 @@ Create `BACKEND/.env` from `BACKEND/.env.example`.
 PORT=3000
 NODE_ENV=development
 MONGO_URI=your_mongodb_connection_string
-CLERK_SECRET_KEY=sk_test_your_clerk_secret_key
+JWT_SECRET=replace_with_a_long_random_secret
 GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MAX_TOKENS=700
 FRONTEND_URL=http://127.0.0.1:5173
-PUBLIC_APP_URL=http://127.0.0.1:3000
+PUBLIC_APP_URL=http://127.0.0.1:5173
 ```
 
-## AI architecture
+Optional SMTP/contact variables are documented in `.env.example`.
 
-1. `chat.controller.js` loads the recent conversation from MongoDB.
-2. `ai.service.js` trims and normalizes chat history.
-3. `llm.service.js` sends the request to Groq with:
-   - model: `llama-3.3-70b-versatile`
-   - temperature: `0.2`
-   - retry handling
-   - timeout handling
-   - a strong Mate.AI system prompt
-4. The assistant reply is stored back in MongoDB.
+## Local Development
 
-## Main chatbot route
-
-Authenticated route:
-
-`POST /api/chat/message`
-
-Request body:
-
-```json
-{
-  "chatId": "682e0example1234567890abc",
-  "message": "Help me debug my React API error"
-}
+```bash
+cd BACKEND
+npm install
+npm start
 ```
 
-Example response:
+## Main API Routes
 
-```json
-{
-  "success": true,
-  "reply": "Start by checking the exact failing request, the network response, and the component that consumes it.",
-  "chat": {
-    "_id": "682e0example1234567890abc",
-    "title": "React API issue",
-    "lastActivity": "2026-05-22T10:20:30.000Z"
-  }
-}
-```
+- `GET /health`
+- `GET /api/health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/guest`
+- `GET /api/auth/me`
+- `GET /api/chat`
+- `POST /api/chat`
+- `GET /api/chat/messages/:id`
+- `POST /api/chat/message`
+- `PUT /api/chat/message/:messageId`
+- `DELETE /api/chat/:id`
 
-## Frontend request example
+## Render Deployment
 
-```js
-const response = await fetch('/api/chat/message', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({
-    chatId,
-    message: 'Write a concise status update for my team',
-  }),
-});
+The repository-level `render.yaml` deploys this backend as an API service:
 
-const data = await response.json();
-console.log(data.reply);
-```
+- Build command: `npm install --prefix BACKEND`
+- Start command: `npm start --prefix BACKEND`
+- Health check path: `/health`
 
-## Notes
-
-- The backend uses Groq only.
-- If `GROQ_API_KEY` is missing, the backend returns a clean configuration message instead of a broken legacy fallback.
-- Error responses are centralized through `error.middleware.js`.
+Set `FRONTEND_URL` and `PUBLIC_APP_URL` to the deployed Vercel URL so CORS and password-reset links point to the frontend. Do not set `SERVE_FRONTEND` for the two-service deployment.

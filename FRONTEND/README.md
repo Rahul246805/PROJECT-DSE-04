@@ -1,64 +1,36 @@
 # Mate.AI Frontend
 
-Modern authentication and Groq-powered chat for the Mate.AI workspace.
+React + Vite frontend for the Mate.AI chatbot workspace.
 
 ## Stack
 
 - React + Vite
 - React Router
-- Tailwind CSS
+- Redux Toolkit
 - Framer Motion
-- Clerk Authentication
+- Local JWT auth against the backend API
 
-## Folder structure
+Clerk and Firebase provider code is still present as optional fallback support, but production uses local email/password auth and guest login by leaving their environment variables unset.
 
-```text
-src/
-  components/
-    auth/
-      AuthLoadingScreen.jsx
-      AuthShell.jsx
-      ClerkAuthCard.jsx
-    chat/
-      ...
-  lib/
-    auth.jsx
-    clerk.js
-    theme.js
-    validation.js
-  pages/
-    Login.jsx
-    Register.jsx
-    ForgotPassword.jsx
-    ResetPassword.jsx
-    Home.jsx
-    Portfolio.jsx
-```
-
-## Environment variables
+## Environment
 
 Create `FRONTEND/.env` from `FRONTEND/.env.example`.
 
 ```bash
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_publishable_key
 VITE_API_URL=http://127.0.0.1:3000/api
 VITE_LINKEDIN_URL=https://www.linkedin.com/in/your-profile
+VITE_CONTACT_EMAIL=hello@mateai.dev
 ```
 
-## Clerk dashboard setup
+For Vercel, set:
 
-1. Create a Clerk application.
-2. In Clerk, enable these sign-in methods:
-   - Google
-   - GitHub
-   - Phone number
-   - Email address + password
-3. Add your local dev URLs:
-   - `http://127.0.0.1:5173`
-   - `http://localhost:5173`
-4. Add your production URL when deployed.
+```bash
+VITE_API_URL=https://<your-render-service>.onrender.com/api
+```
 
-## Local development
+Do not set `VITE_CLERK_PUBLISHABLE_KEY` or `VITE_FIREBASE_*` for the local-JWT production flow.
+
+## Local Development
 
 ```bash
 cd FRONTEND
@@ -66,24 +38,23 @@ npm install
 npm run dev
 ```
 
-The auth routes are:
+The main routes are:
 
+- `/`
 - `/login`
 - `/register`
 - `/forgot-password`
+- `/reset-password/:token`
 - `/app`
 
 Authenticated users are redirected to `/app`. Unauthenticated users trying to access the chatbot are redirected to `/login`.
 
-## Frontend request example for chat replies
+## Vercel Deployment
 
-```js
-import { apiClient } from './src/components/chat/aiClient.js';
+Create the Vercel project with root directory `FRONTEND`.
 
-const { data } = await apiClient.post('/chat/message', {
-  chatId: 'your-chat-id',
-  message: 'Help me write a concise project update',
-});
+- Framework preset: Vite
+- Build command: `npm run build`
+- Output directory: `dist`
 
-console.log(data.reply);
-```
+`vercel.json` rewrites all routes to `index.html` so React Router pages survive browser refreshes.
