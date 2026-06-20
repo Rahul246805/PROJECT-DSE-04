@@ -12,12 +12,19 @@ const normalizeOrigin = (value) => {
   return value.trim().replace(/\/$/, "");
 };
 
+const parseOriginList = (value) => String(value || "")
+  .split(",")
+  .map(normalizeOrigin)
+  .filter(Boolean);
+
 function initSocketServer(httpServer) {
   const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    process.env.FRONTEND_URL,
-    process.env.PUBLIC_APP_URL,
+    "https://mate-ai-frontend.vercel.app",
+    "https://mate-ai-frontend-ngpu8zps0-rahul246805s-projects.vercel.app",
+    ...parseOriginList(process.env.FRONTEND_URL),
+    ...parseOriginList(process.env.PUBLIC_APP_URL),
     process.env.RENDER_EXTERNAL_URL,
   ]
     .map(normalizeOrigin)

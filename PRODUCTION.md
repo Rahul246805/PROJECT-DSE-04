@@ -30,6 +30,8 @@ PUBLIC_APP_URL=https://<your-vercel-app>.vercel.app
 
 Do not set `SERVE_FRONTEND` on Render for the two-service Vercel + Render deployment. The backend will respond as an API service even if old static files exist in `BACKEND/public`.
 
+The deployed Vercel domains are allowed by default in CORS, but still set `FRONTEND_URL` and `PUBLIC_APP_URL` to the final frontend URL so password-reset links use the correct site.
+
 Optional email/contact variables:
 
 ```text
