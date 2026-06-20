@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm install --prefix BACKEND && npm run build --prefix BACKEND",
+    "vercel-build": "npm install --prefix FRONTEND && npm run build --prefix FRONTEND && node scripts/copy-frontend-dist.js",
     "start": "npm start --prefix BACKEND"
   }
 }

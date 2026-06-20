@@ -7,6 +7,7 @@ BACKEND/.env
 FRONTEND/.env
 BACKEND/public/
 FRONTEND/dist/
+dist/
 client/dist/
 .env
 server/.env
